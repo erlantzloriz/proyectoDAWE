@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>La tienda de DAWEWIWOWU</title>
+
+    <!-- Favicon -->
+    <link rel="icon" href="imagenes/favicon.ico">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- CSS propio -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="contenedor">
+
+    <!-- HEADER -->
+    <header>
+        <h1>La tienda de DAWEWIWOWU</h1>
+    </header>
+
+    <!-- NAV -->
+    <nav>
+        <ul>
+            <li><a href="#">Inicio</a></li>
+            <li>
+                <a href="#" data-bs-toggle="offcanvas" data-bs-target="#carrito">
+                    Carrito de la compra
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="contenido">
+
+        <!-- MAIN -->
+        <main>
+            <div class="main-header">
+                <h2 id="titulo-main">Todos los productos</h2>
+                <input type="text" id="buscador" placeholder="Buscar por nombre">
+            </div>
+
+            <div class="row row-cols-1 row-cols-md-3 g-4" id="productos">
+                <!-- Producto -->
+                <div class="col">
+                    <div class="card producto">
+                        <button class="btn btn-carrito"
+                            data-nombre="Puzzles"
+                            data-precio="45"
+                            data-imagen="imagenes/productos/puzzle.jpg">
+                            🛒
+                        </button>
+                        <img src="imagenes/productos/puzzle.jpg" class="card-img-top" alt="">
+                        <div class="card-body">
+                            <h5 class="card-title">Puzzles de 1000 piezas</h5>
+                            <p class="precio">45€</p>
+                            <p class="extra">Piezas: 1000</p>
+                            <p class="card-text">
+                                Pack de puzzles con 1000 piezas para adultos.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col">
+                    <div class="card producto">
+                        <button class="btn btn-carrito"
+                            data-nombre="Monopoly"
+                            data-precio="42"
+                            data-imagen="imagenes/productos/monopoly.jpg">
+                            🛒
+                        </button>                        
+                        <img src="imagenes/productos/monopoly.jpg" class="card-img-top" alt="">
+                        <div class="card-body">
+                            <h5 class="card-title">Monopoly</h5>
+                            <p class="precio">42€</p>
+                            <p class="extra">Jugadores: 2-6</p>
+                            <p class="card-text">
+                                El clásico juego de mesa para toda la familia.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col">
+                    <div class="card producto">
+                        <button class="btn btn-carrito"
+                            data-nombre="Zelda"
+                            data-precio="25"
+                            data-imagen="imagenes/productos/zelda.jpg">
+                            🛒
+                        </button>   
+                        <img src="imagenes/productos/zelda.jpg" class="card-img-top" alt="">
+                        <div class="card-body">
+                            <h5 class="card-title">The Legend of Zelda</h5>
+                            <p class="precio">25€</p>
+                            <p class="extra">Compañía: Nintendo</p>
+                            <p class="card-text">
+                                Juego de acción y aventuras para SNES.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGINACIÓN -->
+            <div class="paginacion">
+                <span>Mostrando 3 de 3 productos</span>
+                <div>
+                    <button class="btn btn-secondary">1</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- ASIDE -->
+        <aside>
+            <h3>Añadir productos</h3>
+
+            <form>
+                <select class="form-control mb-2">
+                    <option>Escoge un tipo</option>
+                    <option>Juego de mesa</option>
+                    <option>Videojuego</option>
+                    <option>Puzzle</option>
+                </select>
+
+                <input type="text" class="form-control mb-2" placeholder="Nombre">
+                <input type="number" class="form-control mb-2" placeholder="Precio">
+                <textarea class="form-control mb-2" placeholder="Descripción"></textarea>
+
+                <input type="file" class="form-control mb-2">
+
+                <div class="drop-zone mb-2">
+                    Arrastra tu imagen aquí
+                </div>
+
+                <button class="btn btn-dark w-100">Subir producto</button>
+            </form>
+        </aside>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        Copyright DAWE
+    </footer>
+
+</div>
+
+<!-- CARRITO (Offcanvas) -->
+<div class="offcanvas offcanvas-start" id="carrito">
+    <div class="offcanvas-header">
+        <h5>Carrito de la compra</h5>
+        <button class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+        <p>No hay productos en el carrito.</p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/script.js"></script>
+</body>
+</html>
