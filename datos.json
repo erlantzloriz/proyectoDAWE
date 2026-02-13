@@ -1,0 +1,42 @@
+[
+  {
+    "tipo": "Videojuego",
+    "nombre": "Super Mario World",
+    "precio": 20,
+    "descripcion": "En esta entrega, los hermanos fontaneros se dirigen a la Tierra de los dinosaurios.",
+    "imagen": "imagenes/productos/mario.jpg",
+    "extra": "Nintendo"
+  },
+  {
+    "tipo": "Videojuego",
+    "nombre": "The Legend of Cerda",
+    "precio": 25,
+    "descripcion": "Juego de acción y aventuras desarrollado por Nintendo.",
+    "imagen": "imagenes/productos/zelda.jpg",
+    "extra": "Nintendo"
+  },
+  {
+    "tipo": "JuegoMesa",
+    "nombre": "Monopoly",
+    "precio": 42,
+    "descripcion": "El clásico juego de compraventa de propiedades.",
+    "imagen": "imagenes/productos/monopoly.jpg",
+    "extra": "2-6 jugadores"
+  },
+  {
+    "tipo": "Puzzle",
+    "nombre": "Puzzle Girasoles",
+    "precio": 45,
+    "descripcion": "Puzzle de 1000 piezas de Van Gogh.",
+    "imagen": "imagenes/productos/puzzle.jpg",
+    "extra": "1000 piezas"
+  },
+  {
+    "tipo": "Puzzle",
+    "nombre": "Puzzle prueba",
+    "precio": 555,
+    "descripcion": "Puzzle de 100000000 piezas de Van Helsing.",
+    "imagen": "imagenes/productos/puzzle.jpg",
+    "extra": "10000000 piezas"
+  }
+]
