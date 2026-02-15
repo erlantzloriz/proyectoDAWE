@@ -42,21 +42,33 @@
             <h3>Añadir productos</h3>
             <form id="form-producto">
                 <select class="form-control mb-2" id="tipo-nuevo">
+                    <option value="" selected disabled>Escoge un tipo</option>
                     <option value="JuegoMesa">Juego de mesa</option>
                     <option value="Videojuego">Videojuego</option>
-                    <option value="Puzzle">Puzzle</option>
+                    <option value="Libro">Libro</option>
+                    <option value="Musica">Música</option>
+                    <option value="Pelicula">Película</option>
                 </select>
-                <input type="text" id="nombre-nuevo" class="form-control mb-2" placeholder="Nombre" required>
-                <input type="number" id="precio-nuevo" class="form-control mb-2" placeholder="Precio" required>
-                <textarea id="desc-nuevo" class="form-control mb-2" placeholder="Descripción"></textarea>
-                <input type="text" id="extra-nuevo" class="form-control mb-2" placeholder="Dato extra (ej: Compañía o Piezas)">
-                <input type="file" class="form-control mb-2" id="foto-producto" accept="image/*">
         
-        <div class="drop-zone mb-2" id="drop-zone">
-            Arrastra tu imagen aquí
-        </div>
+            <input type="text" id="nombre-nuevo" class="form-control mb-2" placeholder="Nombre" required>
+            <input type="number" id="precio-nuevo" class="form-control mb-2" placeholder="Precio" required>
+            <textarea id="desc-nuevo" class="form-control mb-2" placeholder="Descripción"></textarea>
+        
+            <div id="contenedor-extra" style="display: none;">
+                <label id="label-extra" for="extra-nuevo" class="form-label small"></label>
+                <input type="text" id="extra-nuevo" class="form-control mb-2">
+            </div>
 
-        <button type="submit" class="btn btn-dark w-100">Subir producto</button>
+            <input type="file" class="form-control mb-2" id="foto-producto" accept="image/*">
+        
+            <div class="drop-zone mb-2" id="drop-zone">
+                Arrastra tu imagen aquí
+            </div>
+
+            <button type="submit" class="btn btn-dark w-100">Subir producto</button>
+
+            <div id="mensaje-exito" class="alert alert-success mt-2" style="display: none;"></div>
+            <div id="mensaje-error" class="alert alert-danger mt-2" style="display: none;"></div>
             </form>
         </aside>
     </div>
