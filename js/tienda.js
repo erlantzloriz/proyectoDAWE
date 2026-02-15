@@ -1,8 +1,39 @@
 import { Videojuego } from './clases/Videojuego.js';
 import { JuegoMesa } from './clases/JuegoMesa.js';
+import { Libro } from './clases/Libro.js';
+import { Musica } from './clases/Musica.js';
+import { Pelicula } from './clases/Pelicula.js';
 
-export let listaProductos = [];
 export let carrito = {};
+
+// Requisito 4.3: Crear manualmente las instancias base 
+// Se deben generar al menos 3 instancias de cada una de las 5 clases.
+export const listaProductos = [
+    // Videojuegos
+    new Videojuego("Super Mario World", 20, "Aventura en 16 bits.", "imagenes/mario.jpg", "Nintendo"),
+    new Videojuego("Zelda: A Link to the Past", 25, "Acción épica.", "imagenes/zelda.jpg", "Nintendo"),
+    new Videojuego("Street Fighter II", 31, "Lucha clásica.", "imagenes/sf2.jpg", "Capcom"),
+    
+    // Juegos de Mesa (cumpliendo las 3 instancias por clase)
+    new JuegoMesa("Catan", 40, "Estrategia y comercio.", "imagenes/catan.jpg", "4 jugadores"),
+    new JuegoMesa("Monopoly", 30, "Negociación de propiedades.", "imagenes/monopoly.jpg", "6 jugadores"),
+    new JuegoMesa("Dixit", 28, "Juego de cartas e imaginación.", "imagenes/dixit.jpg", "8 jugadores"),
+
+    // Libros
+    new Libro("Maus", 27.5, "Novela gráfica histórica.", "imagenes/maus.jpg", "Reservoir Books"),
+    new Libro("13, Rúe del Percebe", 29, "Cómic clásico español.", "imagenes/13rue.jpg", "Bruguera"),
+    new Libro("El Quijote", 15, "Clásico literario.", null, "Espasa"),
+
+    // Musica
+    new Musica("Abbey Road", 35, "Álbum de The Beatles.", "imagenes/beatles.jpg", "Apple Records"),
+    new Musica("Thriller", 25, "Rey del pop.", "imagenes/thriller.jpg", "Epic Records"),
+    new Musica("Discovery", 45, "Electrónica Daft Punk.", "imagenes/daft.jpg", "Virgin"),
+
+    // Películas
+    new Pelicula("Metrópolis", 18, "Cine expresionista.", "imagenes/metropolis.jpg", "Fritz Lang"),
+    new Pelicula("El Padrino", 20, "Drama criminal.", "imagenes/padrino.jpg", "F.F. Coppola"),
+    new Pelicula("Pulp Fiction", 22, "Cine de culto.", "imagenes/pulp.jpg", "Tarantino")
+];
 
 export async function cargarCatalogo() {
     try {
@@ -49,5 +80,33 @@ export function registrarNuevoProducto(datos) {
     }
     
     listaProductos.push(nuevo);
+    return nuevo;
+}
+
+export function registrarNuevoProducto(datos) {
+    let nuevo;
+    const { tipo, nombre, precio, descripcion, imagen, extra } = datos;
+
+    switch (tipo) {
+        case "Videojuego":
+            nuevo = new Videojuego(nombre, precio, descripcion, imagen, extra);
+            break;
+        case "JuegoMesa":
+            nuevo = new JuegoMesa(nombre, precio, descripcion, imagen, extra);
+            break;
+        case "Libro":
+            nuevo = new Libro(nombre, precio, descripcion, imagen, extra);
+            break;
+        case "Musica":
+            nuevo = new Musica(nombre, precio, descripcion, imagen, extra);
+            break;
+        case "Pelicula":
+            nuevo = new Pelicula(nombre, precio, descripcion, imagen, extra);
+            break;
+        default:
+            return null;
+    }
+    
+    listaProductos.push(nuevo); 
     return nuevo;
 }
