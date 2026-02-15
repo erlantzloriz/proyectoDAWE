@@ -3,8 +3,10 @@ import { calcularTotalPaginas, truncarTexto, esImagenValida } from './utils.js';
 
 const contenedor = document.getElementById("productos");
 const buscador = document.getElementById("buscador");
+const tituloPrincipal = document.getElementById("titulo-main");
 let paginaActual = 1;
 let productosFiltrados = listaProductos;
+
 
 async function init() {
     await cargarCatalogo();
@@ -130,16 +132,26 @@ function pintarCarrito() {
 
 if (buscador) {
     buscador.oninput = () => {
-        const query = buscador.value.toLowerCase();
+        // Obtenemos el valor y quitamos espacios en blanco innecesarios 
+        const query = buscador.value.trim().toLowerCase();
         const tituloMain = document.getElementById("titulo-main"); 
         
-        // Actualizar título 
-        tituloMain.textContent = query === "" ? "Todos los productos" : `Buscando por: ${query}`;
+        // Requisito : Si está vacío, "Todos los productos", si no "Buscando por: xxx"
+        if (query === "") {
+            tituloMain.textContent = "Todos los productos"; 
+            productosFiltrados = [...listaProductos]; // Restauramos el orden original 
+        } else {
+            tituloMain.textContent = `Buscando por: ${query}`; 
+            // Requisito : Filtrar ignorando mayúsculas/minúsculas 
+            productosFiltrados = listaProductos.filter(p => 
+                p.nombre.toLowerCase().includes(query)
+            );
+        }
 
-        productosFiltrados = listaProductos.filter(p => 
-            p.nombre.toLowerCase().includes(query)
-        );
-        paginaActual = 1; //  Volver a la página 1 al filtrar
+        //  Siempre volver a la página 1 al filtrar 
+        paginaActual = 1; 
+        
+        // Re-renderizamos la tienda con la lista filtrada 
         renderizarProductos(productosFiltrados);
     };
 }
