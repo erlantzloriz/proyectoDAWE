@@ -1,6 +1,6 @@
-import Producto from './Producto.js';
+import { Producto } from './Producto.js';
 
-export default class Pelicula extends Producto {
+export class Pelicula extends Producto {
     #director;
 
     constructor(nombre, precio, descripcion, imagen, director) {
