@@ -1,5 +1,10 @@
-import { listaProductos, cargarCatalogo, agregarAlCarrito, registrarNuevoProducto } from './tienda.js';
+import { listaProductos, carrito, cargarCatalogo, agregarAlCarrito, registrarNuevoProducto } from './tienda.js';
 import { calcularTotalPaginas, truncarTexto, esImagenValida } from './utils.js';
+import { Videojuego } from './clases/Videojuego.js';
+import { JuegoMesa } from './clases/JuegoMesa.js';
+import { Libro } from './clases/Libro.js';
+import { Musica } from './clases/Musica.js';
+import { Pelicula } from './clases/Pelicula.js';
 
 const contenedor = document.getElementById("productos");
 const buscador = document.getElementById("buscador");
@@ -28,7 +33,7 @@ function renderizarProductos(lista) {
     const fin = inicio + 6;
     const productosVisibles = lista.slice(inicio, fin);
 
-    lista.forEach(prod => {
+    productosVisibles.forEach(prod => {
         // Validación de seguridad para evitar el error de 'prod is undefined'
         if (!prod) return;
 
@@ -62,7 +67,9 @@ function renderizarProductos(lista) {
 
 function renderizarPaginacion(totalProductos) {
     const totalPaginas = Math.ceil(totalProductos / 6);
-    const navPaginacion = document.getElementById("paginacion-controls");
+    const navPaginacion = document.getElementById("paginacion-info");
+    
+    if (!navPaginacion) return;
     
     // Texto informativo: "Mostrando X de Y productos" 
     let html = `<p>Mostrando ${Math.min(6, totalProductos)} de ${totalProductos} productos.</p>`;
@@ -113,22 +120,68 @@ function configurarEventosBotones() {
 
 function pintarCarrito() {
     const cuerpo = document.getElementById("carrito-body");
-    const items = Object.values(carrito);
+    const items = Object.entries(carrito);
     if (items.length === 0) {
         cuerpo.innerHTML = "<p>El carrito está vacío.</p>";
         return;
     }
     let html = "";
     let total = 0;
-    items.forEach(item => {
+    items.forEach(([id, item]) => {
         total += item.precio * item.cantidad;
-        html += `<div class="mb-2 border-bottom pb-2">
-            <strong>${item.nombre}</strong><br>
-            ${item.cantidad} x ${item.precio}€ = ${(item.cantidad * item.precio).toFixed(2)}€
+        html += `<div class="mb-3 border-bottom pb-2">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <strong>${item.nombre}</strong><br>
+                    <small class="text-muted">${item.precio}€/ud</small>
+                </div>
+                <button class="btn btn-sm btn-danger" onclick="window.eliminarDelCarrito('${id}')">🗑️</button>
+            </div>
+            <div class="d-flex align-items-center mt-2">
+                <button class="btn btn-sm btn-secondary" onclick="window.modificarCantidad('${id}', -1)">-</button>
+                <span class="mx-3">${item.cantidad}</span>
+                <button class="btn btn-sm btn-secondary" onclick="window.modificarCantidad('${id}', 1)">+</button>
+                <span class="ms-auto fw-bold">${(item.cantidad * item.precio).toFixed(2)}€</span>
+            </div>
         </div>`;
     });
-    cuerpo.innerHTML = html + `<div class="mt-2"><strong>Total: ${total.toFixed(2)}€</strong></div>`;
+    html += `<div class="mt-3 pt-2 border-top">
+        <div class="d-flex justify-content-between">
+            <strong>Total:</strong>
+            <strong>${total.toFixed(2)}€</strong>
+        </div>
+        <button class="btn btn-danger w-100 mt-3" onclick="window.vaciarCarrito()">Vaciar carrito</button>
+    </div>`;
+    cuerpo.innerHTML = html;
 }
+
+function eliminarDelCarrito(id) {
+    delete carrito[id];
+    pintarCarrito();
+}
+
+function modificarCantidad(id, cambio) {
+    if (!carrito[id]) return;
+    const nuevaCantidad = carrito[id].cantidad + cambio;
+    if (nuevaCantidad <= 0) {
+        eliminarDelCarrito(id);
+    } else if (nuevaCantidad <= 20) {
+        carrito[id].cantidad = nuevaCantidad;
+        pintarCarrito();
+    }
+}
+
+function vaciarCarrito() {
+    if (confirm('¿Seguro que quieres vaciar el carrito?')) {
+        Object.keys(carrito).forEach(key => delete carrito[key]);
+        pintarCarrito();
+    }
+}
+
+// Exponer funciones al scope global para onclick
+window.eliminarDelCarrito = eliminarDelCarrito;
+window.modificarCantidad = modificarCantidad;
+window.vaciarCarrito = vaciarCarrito;
 
 if (buscador) {
     buscador.oninput = () => {

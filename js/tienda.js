@@ -8,7 +8,7 @@ export let carrito = {};
 
 // Requisito 4.3: Crear manualmente las instancias base 
 // Se deben generar al menos 3 instancias de cada una de las 5 clases.
-export const listaProductos = [
+export let listaProductos = [
     // Videojuegos
     new Videojuego("Super Mario World", 20, "Aventura en 16 bits.", "imagenes/mario.jpg", "Nintendo"),
     new Videojuego("Zelda: A Link to the Past", 25, "Acción épica.", "imagenes/zelda.jpg", "Nintendo"),
@@ -80,33 +80,5 @@ export function registrarNuevoProducto(datos) {
     }
     
     listaProductos.push(nuevo);
-    return nuevo;
-}
-
-export function registrarNuevoProducto(datos) {
-    let nuevo;
-    const { tipo, nombre, precio, descripcion, imagen, extra } = datos;
-
-    switch (tipo) {
-        case "Videojuego":
-            nuevo = new Videojuego(nombre, precio, descripcion, imagen, extra);
-            break;
-        case "JuegoMesa":
-            nuevo = new JuegoMesa(nombre, precio, descripcion, imagen, extra);
-            break;
-        case "Libro":
-            nuevo = new Libro(nombre, precio, descripcion, imagen, extra);
-            break;
-        case "Musica":
-            nuevo = new Musica(nombre, precio, descripcion, imagen, extra);
-            break;
-        case "Pelicula":
-            nuevo = new Pelicula(nombre, precio, descripcion, imagen, extra);
-            break;
-        default:
-            return null;
-    }
-    
-    listaProductos.push(nuevo); 
     return nuevo;
 }
