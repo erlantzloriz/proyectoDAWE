@@ -34,9 +34,13 @@ function renderizarTienda() {
         // Obtener el atributo extra específico del producto
         const atributoExtra = obtenerAtributoExtra(p);
         
+        // Verificar si el producto tiene 20 copias en el carrito
+        const cantidadEnCarrito = carrito[p.id] ? carrito[p.id].cantidad : 0;
+        const botonDesactivado = cantidadEnCarrito >= 20;
+        
         col.innerHTML = `
             <div class="card h-100 producto position-relative">
-                <button class="btn-carrito-icon" data-id="${p.id}">🛒</button>
+                <button class="btn-carrito-icon ${botonDesactivado ? 'disabled' : ''}" data-id="${p.id}" ${botonDesactivado ? 'disabled' : ''}>🛒</button>
                 <img src="${p.imagen || 'imagenes/productos/default.jpg'}" class="card-img-top img-detalles" style="cursor:pointer">
                 <div class="card-body">
                     <h5 class="card-title">${truncarTexto(p.nombre, 20)}</h5>
@@ -73,10 +77,14 @@ function obtenerAtributoExtra(producto) {
 function configurarEventosGlobales() {
     document.addEventListener("click", (e) => {
         if (e.target.classList.contains("btn-carrito-icon")) {
+            // No hacer nada si el botón está desactivado
+            if (e.target.disabled) return;
+            
             const id = e.target.getAttribute("data-id");
             agregarAlCarrito(id);
             mostrarAvisoAñadido(e.target);
             renderCarrito();
+            renderizarTienda();
         }
         
         // Evento para eliminar del carrito
@@ -84,6 +92,7 @@ function configurarEventosGlobales() {
             const id = e.target.getAttribute("data-id");
             delete carrito[id];
             renderCarrito();
+            renderizarTienda();
         }
         
         // Evento para vaciar carrito completo
@@ -91,6 +100,7 @@ function configurarEventosGlobales() {
             if (confirm("¿Estás seguro de que quieres vaciar el carrito?")) {
                 Object.keys(carrito).forEach(key => delete carrito[key]);
                 renderCarrito();
+                renderizarTienda();
             }
         }
     });
@@ -104,13 +114,16 @@ function configurarEventosGlobales() {
             if (isNaN(cantidad) || cantidad <= 0) {
                 delete carrito[id];
                 renderCarrito();
+                renderizarTienda();
             } else if (cantidad > 20) {
                 e.target.value = 20;
                 carrito[id].cantidad = 20;
-                renderCarrito();
+                renderCarrito(id);
+                renderizarTienda();
             } else {
                 carrito[id].cantidad = cantidad;
                 renderCarrito();
+                renderizarTienda();
             }
         }
     });
@@ -127,7 +140,6 @@ function configurarEventosGlobales() {
         }
     };
     
-    // Configurar drag & drop para subir imágenes
     configurarDragAndDrop();
 }
 
@@ -161,6 +173,12 @@ function configurarDragAndDrop() {
     dropZone.addEventListener('drop', (e) => {
         const dt = e.dataTransfer;
         const files = dt.files;
+        
+        // Validar que solo se suba un archivo
+        if (files.length > 1) {
+            mostrarErrorMultiplesArchivos();
+            return;
+        }
         
         if (files.length > 0) {
             if (validarTipoImagen(files[0])) {
@@ -211,28 +229,91 @@ function mostrarErrorImagen() {
     }
 }
 
+function mostrarErrorMultiplesArchivos() {
+    const dropZone = document.getElementById("drop-zone");
+    if (dropZone) {
+        dropZone.innerHTML = `
+            <div class="text-danger">
+                <strong>✕ Error: Solo se permite subir 1 archivo</strong>
+                <div class="small mt-1">Arrastra solo una imagen</div>
+            </div>
+        `;
+        // Volver al estado normal después de 2 segundos
+        setTimeout(() => {
+            dropZone.innerHTML = "Arrastra tu imagen aquí o haz clic";
+        }, 2000);
+    }
+}
+
 function actualizarNombreArchivo(file) {
     const dropZone = document.getElementById("drop-zone");
     if (dropZone && file) {
         dropZone.innerHTML = `
             <div class="text-success">
                 <strong>✓ ${file.name}</strong>
-                <div class="small mt-1">Clic para cambiar</div>
+                <div class="small mt-1">Imagen cargada correctamente</div>
             </div>
         `;
+        // Después de 1.5 segundos, cambiar solo el mensaje pero mantener el nombre del archivo
+        setTimeout(() => {
+            dropZone.innerHTML = `
+                <div class="text-success">
+                    <strong>✓ ${file.name}</strong>
+                    <div class="small mt-1">Clic para cambiar</div>
+                </div>
+            `;
+        }, 1500);
     }
+}
+
+function mostrarMensajeExito() {
+    const form = document.getElementById("form-producto");
+    if (!form) return;
+    
+    // Crear mensaje de éxito
+    const mensaje = document.createElement("div");
+    mensaje.className = "alert alert-success mt-3 mb-0";
+    mensaje.innerHTML = `
+        <strong>✓ ¡Producto registrado con éxito!</strong>
+        <div class="small">El producto se ha añadido a la tienda</div>
+    `;
+    
+    form.parentElement.appendChild(mensaje);
+    
+    // Eliminar después de 2 segundos
+    setTimeout(() => {
+        if (mensaje.parentElement) {
+            mensaje.remove();
+        }
+    }, 2000);
 }
 
 function actualizarPaginacion() {
     const total = productosFiltrados.length;
     const info = document.getElementById("info-paginacion");
-    info.textContent = `Mostrando ${Math.min(PRODUCTOS_POR_PAGINA, total)} de ${total} productos.`;
+    
+    // Calcular cuántos productos se están mostrando realmente en la página actual
+    const inicio = (paginaActual - 1) * PRODUCTOS_POR_PAGINA;
+    const fin = Math.min(inicio + PRODUCTOS_POR_PAGINA, total);
+    const mostrados = fin - inicio;
+    
+    info.textContent = `Mostrando ${mostrados} de ${total} productos.`;
 
     const contenedorBtns = document.getElementById("paginacion-btns");
     contenedorBtns.innerHTML = "";
     
     const totalPaginas = Math.ceil(total / PRODUCTOS_POR_PAGINA);
     
+    // Botón "Anterior" (solo si estamos en página 2 o superior)
+    if (paginaActual > 1) {
+        const btnAnterior = document.createElement("button");
+        btnAnterior.className = "btn btn-sm btn-outline-dark m-1";
+        btnAnterior.textContent = "Anterior";
+        btnAnterior.onclick = () => { paginaActual--; renderizarTienda(); };
+        contenedorBtns.appendChild(btnAnterior);
+    }
+    
+    // Botones numerados
     for (let i = 1; i <= totalPaginas; i++) {
         const btn = document.createElement("button");
         btn.className = `btn btn-sm m-1 ${i === paginaActual ? 'btn-dark' : 'btn-outline-dark'}`;
@@ -240,11 +321,20 @@ function actualizarPaginacion() {
         btn.onclick = () => { paginaActual = i; renderizarTienda(); };
         contenedorBtns.appendChild(btn);
     }
+    
+    // Botón "Siguiente" (solo si hay al menos 2 páginas y no estamos en la última)
+    if (totalPaginas > 1 && paginaActual < totalPaginas) {
+        const btnSiguiente = document.createElement("button");
+        btnSiguiente.className = "btn btn-sm btn-outline-dark m-1";
+        btnSiguiente.textContent = "Siguiente";
+        btnSiguiente.onclick = () => { paginaActual++; renderizarTienda(); };
+        contenedorBtns.appendChild(btnSiguiente);
+    }
 }
 
 buscador.oninput = () => {
     const q = buscador.value.toLowerCase().trim();
-    tituloMain.textContent = q === "" ? "Todos los productos" : `Buscando: ${q}`;
+    tituloMain.textContent = q === "" ? "Todos los productos" : `Buscando por: ${q}`;
     productosFiltrados = listaProductos.filter(p => p.nombre.toLowerCase().includes(q));
     paginaActual = 1;
     renderizarTienda();
@@ -278,6 +368,8 @@ form.onsubmit = (e) => {
     if (dropZone) {
         dropZone.innerHTML = "Arrastra tu imagen aquí o haz clic";
     }
+    
+    mostrarMensajeExito();
 };
 
 function mostrarAvisoAñadido(nodo) {
@@ -288,33 +380,64 @@ function mostrarAvisoAñadido(nodo) {
     setTimeout(() => aviso.remove(), 1000);
 }
 
+function mostrarAvisoLimite(id) {
+    // Buscar el contenedor del producto usando el data-producto-id
+    const productoDiv = document.querySelector(`.producto-carrito[data-producto-id="${id}"]`);
+    if (!productoDiv) {
+        console.log('No se encontró el producto con id:', id);
+        return;
+    }
+    
+    // Verificar si ya existe un aviso para no duplicar
+    const avisoExistente = productoDiv.querySelector('.aviso-limite');
+    if (avisoExistente) return;
+    
+    // Crear el aviso
+    const aviso = document.createElement("div");
+    aviso.className = "aviso-limite alert alert-danger py-2 px-3 mt-2 mb-0 small";
+    aviso.style.fontSize = "0.85rem";
+    aviso.textContent = "No se permiten más de 20 copias.";
+    
+    productoDiv.appendChild(aviso);
+    
+    // Eliminar después de 2 segundos
+    setTimeout(() => {
+        if (aviso.parentElement) {
+            aviso.remove();
+        }
+    }, 2000);
+}
+
 function mostrarDetalles(p) {
     const modal = document.createElement("div");
     modal.className = "detalles-overlay";
     const atributoExtra = obtenerAtributoExtra(p);
     
     modal.innerHTML = `
-        <div class="detalles-modal p-4">
-            <button class="btn-close float-end" id="close-modal"></button>
-            <div class="row">
-                <div class="col-md-5"><img src="${p.imagen || 'imagenes/productos/default.jpg'}" class="img-fluid"></div>
-                <div class="col-md-7">
-                    <h3>${p.nombre}</h3>
-                    <p class="text-success fw-bold fs-4">${p.precio}€</p>
-                    ${atributoExtra ? `<p class="mb-2"><strong>${atributoExtra.label}:</strong> <span class="text-muted">${atributoExtra.valor}</span></p>` : ''}
-                    <div style="max-height:200px; overflow-y:auto">
-                        <h5>Descripción:</h5>
-                        <p>${p.descripcion}</p>
-                    </div>
-                </div>
+        <div class="detalles-modal">
+            <button class="btn-close btn-close-modal" id="close-modal"></button>
+            <div class="detalles-img-container">
+                <img src="${p.imagen || 'imagenes/productos/default.jpg'}" alt="${p.nombre}">
+            </div>
+            <div class="detalles-info">
+                <h3 class="mb-3 fw-bold">${p.nombre}</h3>
+                <p class="text-success fw-bold fs-4 mb-3">${p.precio}€</p>
+                ${atributoExtra ? `<p class="mb-3"><strong>${atributoExtra.label}:</strong> <span class="text-muted">${atributoExtra.valor}</span></p>` : ''}
+                <h5 class="mb-2">Descripción:</h5>
+                <p class="text-justify">${p.descripcion}</p>
             </div>
         </div>
     `;
     document.body.appendChild(modal);
     document.getElementById("close-modal").onclick = () => modal.remove();
+    
+    // Cerrar al hacer clic en el overlay (fondo)
+    modal.onclick = (e) => {
+        if (e.target === modal) modal.remove();
+    };
 }
 
-function renderCarrito() {
+function renderCarrito(idConAviso = null) {
     if (!carritoBody) return;
     
     carritoBody.innerHTML = "";
@@ -333,6 +456,7 @@ function renderCarrito() {
         
         const div = document.createElement("div");
         div.className = "producto-carrito mb-3 pb-3 border-bottom";
+        div.setAttribute('data-producto-id', id);
         div.innerHTML = `
             <div class="d-flex gap-2 align-items-start">
                 <img src="${item.imagen || 'imagenes/productos/default.jpg'}" width="60" height="60" class="rounded" style="object-fit: cover;">
@@ -362,4 +486,9 @@ function renderCarrito() {
         <button class="btn btn-outline-danger w-100 btn-sm btn-vaciar-carrito">Vaciar Carrito</button>
     `;
     carritoBody.appendChild(totalDiv);
+    
+    // Si hay un ID con aviso, mostrarlo después de que el DOM se actualice
+    if (idConAviso) {
+        setTimeout(() => mostrarAvisoLimite(idConAviso), 50);
+    }
 }
