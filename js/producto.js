@@ -1,26 +1,28 @@
 import { generarId } from '../utils.js';
 
 export class Producto {
+    #id;
+    #nombre;
+    #precio;
+    #descripcion;
+    #imagen;
+
     constructor(nombre, precio, descripcion, imagen) {
-        this._nombre = nombre;
-        this._precio = precio;
-        this._descripcion = descripcion;
-        this._imagen = imagen || "imagenes/no-image.png"; // Imagen por defecto [cite: 271]
-        this._id = generarId(nombre); // ID automático al instanciar [cite: 269]
+        // Generar ID único (Requisito 4.1.1)
+        this.#id = Math.random().toString(36).substr(2, 9);
+        this.#nombre = nombre;
+        this.#precio = precio;
+        this.#descripcion = descripcion;
+        this.#imagen = imagen;
     }
 
-    // El ID solo tiene getter, no setter [cite: 268]
-    get id() { return this._id; }
-
-    get nombre() { return this._nombre; }
-    set nombre(valor) { this._nombre = valor; }
-
-    get precio() { return this._precio; }
-    set precio(valor) { this._precio = valor; }
-
-    get descripcion() { return this._descripcion; }
-    set descripcion(valor) { this._descripcion = valor; }
-
-    get imagen() { return this._imagen; }
-    set imagen(valor) { this._imagen = valor; }
+    get id() { return this.#id; }
+    get nombre() { return this.#nombre; }
+    set nombre(v) { this.#nombre = v; }
+    get precio() { return this.#precio; }
+    set precio(v) { this.#precio = v; }
+    get descripcion() { return this.#descripcion; }
+    set descripcion(v) { this.#descripcion = v; }
+    get imagen() { return this.#imagen; }
+    set imagen(v) { this.#imagen = v; }
 }

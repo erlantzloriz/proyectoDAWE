@@ -1,133 +1,122 @@
+/* Requisito 3.2: Fondo con patrón que se repite */
 body {
-    background: url("../imagenes/fondo.png") repeat;
+    background-image: url('../imagenes/patron_tienda.png');
+    background-repeat: repeat;
     margin: 0;
-    font-family: Arial, sans-serif;
+    min-height: 100vh;
 }
 
-.contenedor {
-    max-width: 90%;
+/* Requisito 3.3: Contenedor pegado arriba y abajo, ancho <= 90% */
+.container-principal {
+    width: 90%;
+    max-width: 1200px;
     margin: 0 auto;
     min-height: 100vh;
-    background: rgba(255,255,255,0.95);
+    background-color: rgba(255, 255, 255, 0.95);
     display: flex;
     flex-direction: column;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
 }
 
+/* Requisito 3.4: Cabecera pegada arriba */
 header {
-    background: #eee;
-    padding: 20px;
+    background-color: #333;
+    color: white;
+    padding: 1rem;
     text-align: center;
 }
 
-aside {
-    background: #f2f2f2;
-    border-left: 2px solid #ccc;
+header h1 {
+    margin: 0;
+    font-size: 2.5rem;
 }
 
-nav {
-    background: linear-gradient(90deg, #5f5f5f, #7a7a7a);
-    padding: 10px 0;
+/* Zona de Drag & Drop (Requisito 3.6.2) */
+.drop-zone {
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    color: #888;
+    transition: all 0.3s;
+    cursor: pointer;
 }
 
-nav ul {
-    list-style: none;
+.drop-zone.dragover {
+    border-color: #333;
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+/* Requisito 3.9: Estilos para la descripción extendida (modal) */
+.detalles-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7); /* Opacidad menor a 1 */
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 40px;
-    margin: 0;
-    padding: 0;
+    z-index: 2000;
 }
 
-nav li {
-    display: inline-block;
-}
-
-nav a {
-    color: white;
-    text-decoration: none;
-    font-size: 1.1rem;
-    font-weight: 600;
-    padding: 8px 18px;
-    border-radius: 20px;
-    transition: all 0.3s ease;
-}
-
-nav a:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-}
-
-
-.contenido {
-    display: flex;
-    align-items: flex-start;
-    gap: 20px;
-}
-main {
-    flex: 0 0 75%;
-}
-
-aside {
-    flex: 0 0 25%;
-    background: #f2f2f2;
-    padding: 15px;
-    border-left: 2px solid #ccc;
-}
-
-.main-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.main-header input {
-    width: 200px;
-}
-
-.producto {
+.detalles-modal {
+    background: white;
+    width: 80%;
+    height: 70%;
+    max-width: 900px;
+    border-radius: 8px;
+    overflow: hidden;
     position: relative;
 }
 
-.btn-carrito {
+.detalles-scroll {
+    overflow-y: auto;
+    height: 100%;
+}
+
+.btn-close-modal {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 10px; right: 15px;
+    font-size: 2rem;
+    border: none; background: none;
+    cursor: pointer; z-index: 10;
+}
+
+/* Botón carrito circular sobre imagen (Requisito 606) */
+.btn-carrito-icon {
+    position: absolute;
+    top: 10px; right: 10px;
+    width: 40px; height: 40px;
     border-radius: 50%;
     background: white;
-    border: 1px solid #ccc;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    cursor: pointer;
 }
 
-.card-title,
-.card-text {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+.aviso-añadido {
+    position: absolute;
+    top: -30px; right: 0;
+    background: #28a745;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    animation: fadeInOut 1.5s forwards;
 }
 
-.precio {
-    font-weight: bold;
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translateY(5px); }
+    20% { opacity: 1; transform: translateY(0); }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
 }
 
-.paginacion {
-    margin-top: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.drop-zone {
-    border: 2px dashed #999;
-    padding: 20px;
-    text-align: center;
-    color: #666;
-}
-
+/* Requisito 3.7: Pie de página pegado abajo */
 footer {
-    background: #666;
+    margin-top: auto;
+    background-color: #444;
     color: white;
     text-align: center;
-    padding: 10px;
+    padding: 0.5rem;
 }
