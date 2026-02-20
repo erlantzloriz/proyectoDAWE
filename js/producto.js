@@ -8,7 +8,6 @@ export class Producto {
     #imagen;
 
     constructor(nombre, precio, descripcion, imagen) {
-        // Generar ID único (Requisito 4.1.1)
         this.#id = Math.random().toString(36).substr(2, 9);
         this.#nombre = nombre;
         this.#precio = precio;

@@ -2,20 +2,17 @@ const buscador = document.getElementById("buscador");
 const titulo = document.getElementById("titulo-main");
 const contenedorProductos = document.getElementById("productos");
 
-// Guardamos todos los productos originales
 const productos = Array.from(contenedorProductos.children);
 
 buscador.addEventListener("input", () => {
     const texto = buscador.value.trim().toLowerCase();
 
-    // Actualizar título
     if (texto === "") {
         titulo.textContent = "Todos los productos";
     } else {
         titulo.textContent = `Buscando por: ${buscador.value}`;
     }
 
-    // Filtrar productos
     productos.forEach(producto => {
         const nombre = producto
             .querySelector(".card-title")
@@ -35,7 +32,6 @@ const cuerpoCarrito = document.querySelector(".offcanvas-body");
 
 const carrito = {};
 
-// Renderizar carrito
 function renderCarrito() {
     cuerpoCarrito.innerHTML = "";
 
@@ -81,7 +77,6 @@ function renderCarrito() {
     activarEventosCantidad();
 }
 
-// Añadir producto
 botonesCarrito.forEach(boton => {
     boton.addEventListener("click", () => {
         const nombre = boton.dataset.nombre;
@@ -103,7 +98,6 @@ botonesCarrito.forEach(boton => {
     });
 });
 
-// Cambiar cantidad
 function activarEventosCantidad() {
     document.querySelectorAll(".cantidad").forEach(input => {
         input.addEventListener("change", () => {
