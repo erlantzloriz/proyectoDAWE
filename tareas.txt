@@ -1,0 +1,23 @@
+DISTRIBUCIÓN DE TAREAS
+
+ERLANTZ:
+- Estructura HTML
+- Favicono y fondo con patrón repetible
+- CSS general
+- Diseño responsive
+- Clase Producto.js con atributos privados (#)
+
+JON:
+- Clases de productos: Videojuego.js, JuegoMesa.js, Libro.js, Musica.js, Pelicula.js
+- Archivo tienda.js con lista de productos
+- Funciones agregarAlCarrito() y registrarNuevoProducto()
+- Renderizado del carrito
+- Sistema de cantidades y validación de límites
+
+ANDONI:
+- Main.js con gestión de eventos
+- Sistema de paginación completo
+- Buscador en tiempo real
+- Formulario de productos con drag & drop
+- Modal de detalles de producto
+- Utils.js (truncarTexto, generarId, validaciones)
