@@ -5,7 +5,6 @@ let paginaActual = 1;
 const PRODUCTOS_POR_PAGINA = 6;
 let productosFiltrados = [...listaProductos];
 
-// Selectores
 const gridProductos = document.getElementById("productos");
 const buscador = document.getElementById("buscador");
 const tituloMain = document.getElementById("titulo-main");
@@ -47,7 +46,6 @@ function renderizarTienda() {
                 </div>
             </div>
         `;
-        // Evento para detalles
         col.querySelector(".img-detalles").onclick = () => mostrarDetalles(p);
         gridProductos.appendChild(col);
     });
@@ -117,7 +115,7 @@ function configurarEventosGlobales() {
         }
     });
 
-    // Manejo del selector de tipo
+    // Manejo del selector de tipo de producto
     selectorTipo.onchange = () => {
         const tipo = selectorTipo.value;
         if (!tipo) {
@@ -181,7 +179,7 @@ function configurarDragAndDrop() {
                 actualizarNombreArchivo(e.target.files[0]);
             } else {
                 mostrarErrorImagen();
-                e.target.value = ''; // Limpiar el input
+                e.target.value = '';
             }
         }
     });
@@ -225,7 +223,6 @@ function actualizarNombreArchivo(file) {
     }
 }
 
-// Lógica de Paginación
 function actualizarPaginacion() {
     const total = productosFiltrados.length;
     const info = document.getElementById("info-paginacion");
@@ -245,7 +242,6 @@ function actualizarPaginacion() {
     }
 }
 
-// Buscador
 buscador.oninput = () => {
     const q = buscador.value.toLowerCase().trim();
     tituloMain.textContent = q === "" ? "Todos los productos" : `Buscando: ${q}`;
@@ -254,7 +250,6 @@ buscador.oninput = () => {
     renderizarTienda();
 };
 
-// Formulario
 form.onsubmit = (e) => {
     e.preventDefault();
     
@@ -262,7 +257,7 @@ form.onsubmit = (e) => {
     const fotoInput = document.getElementById("foto-producto");
     if (fotoInput.files[0] && !validarTipoImagen(fotoInput.files[0])) {
         mostrarErrorImagen();
-        return; // Detener el envío del formulario
+        return; 
     }
     
     const datos = {
@@ -279,7 +274,6 @@ form.onsubmit = (e) => {
     form.reset();
     contenedorExtra.style.display = "none";
     
-    // Resetear el drop-zone
     const dropZone = document.getElementById("drop-zone");
     if (dropZone) {
         dropZone.innerHTML = "Arrastra tu imagen aquí o haz clic";
@@ -320,7 +314,6 @@ function mostrarDetalles(p) {
     document.getElementById("close-modal").onclick = () => modal.remove();
 }
 
-// Renderizar el carrito
 function renderCarrito() {
     if (!carritoBody) return;
     

@@ -5,11 +5,10 @@ export class Producto {
         this._nombre = nombre;
         this._precio = precio;
         this._descripcion = descripcion;
-        this._imagen = imagen || "imagenes/no-image.png"; // Imagen por defecto [cite: 271]
-        this._id = generarId(nombre); // ID automático al instanciar [cite: 269]
+        this._imagen = imagen || "imagenes/no-image.png"; 
+        this._id = generarId(nombre); 
     }
 
-    // El ID solo tiene getter, no setter [cite: 268]
     get id() { return this._id; }
 
     get nombre() { return this._nombre; }
