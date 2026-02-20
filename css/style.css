@@ -1,58 +1,198 @@
+/* --- REQUISITOS DE DISEÑO GENERAL (Sección 3) --- */
+
 /* Requisito 3.2: Fondo con patrón que se repite */
 body {
-    background-image: url('../imagenes/patron_tienda.png');
+    background-image: url('../imagenes/fondo.jpg'); /* Asegúrate de que el nombre coincida con tu imagen [cite: 540] */
     background-repeat: repeat;
+    background-attachment: fixed;
     margin: 0;
+    font-family: 'Roboto', sans-serif;
     min-height: 100vh;
+    background-color: #1a1a2e;
 }
 
 /* Requisito 3.3: Contenedor pegado arriba y abajo, ancho <= 90% */
 .container-principal {
     width: 90%;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
     min-height: 100vh;
-    background-color: rgba(255, 255, 255, 0.95);
+    background-color: rgba(255, 255, 255, 0.98);
     display: flex;
     flex-direction: column;
-    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    box-shadow: 0 0 30px rgba(0,0,0,0.3);
 }
 
-/* Requisito 3.4: Cabecera pegada arriba */
+/* Requisito 3.4: Cabecera pegada a la parte superior */
 header {
-    background-color: #333;
+    background: linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%);
     color: white;
-    padding: 1rem;
+    padding: 30px 0;
     text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 header h1 {
     margin: 0;
-    font-size: 2.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
 }
 
-/* Zona de Drag & Drop (Requisito 3.6.2) */
-.drop-zone {
-    border: 2px dashed #ccc;
-    border-radius: 10px;
+/* --- ESTRUCTURA DE CONTENIDO (Sección 3.6) --- */
+
+/* Layout: Main (izquierda) y Aside (derecha)  */
+.layout-tienda {
+    display: flex;
+    gap: 15px;
     padding: 20px;
-    text-align: center;
-    color: #888;
-    transition: all 0.3s;
+    flex-grow: 1;
+}
+
+main {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Requisito 3.6.2: Aside (Formulario) */
+aside {
+    background-color: #f8f9fa;
+    padding: 30px;
+    border-radius: 10px;
+    border: 1px solid #dee2e6;
+    height: fit-content;
+    position: sticky;
+    top: 80px;
+    width: 380px;
+    min-width: 380px;
+}
+
+aside h3 {
+    font-size: 1.15rem;
+    margin-bottom: 1.2rem;
+}
+
+aside .form-control,
+aside .form-select {
+    font-size: 1rem;
+    padding: 12px;
+}
+
+aside textarea {
+    min-height: 90px;
+}
+
+aside .btn {
+    padding: 12px;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* --- COMPONENTES INTERACTIVOS --- */
+
+/* Requisito 606: Botón de carrito circular en la esquina de la imagen */
+.btn-carrito-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%);
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
     cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    z-index: 5;
+}
+
+.btn-carrito-icon:hover {
+    transform: scale(1.15) rotate(10deg);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+}
+
+/* Estilos para las tarjetas de productos */
+.card {
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.card-img-top {
+    height: 200px;
+    object-fit: cover;
+    background-color: #f8f9fa;
+}
+
+.card-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.card-text.small {
+    margin-top: auto;
+}
+
+/* Requisito 5.3: Zona de Drag & Drop */
+.drop-zone {
+    border: 3px dashed #2d6a4f;
+    border-radius: 12px;
+    padding: 25px;
+    text-align: center;
+    color: #6c757d;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: linear-gradient(135deg, rgba(45, 106, 79, 0.05) 0%, rgba(27, 67, 50, 0.05) 100%);
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.drop-zone:hover {
+    border-color: #1b4332;
+    background: linear-gradient(135deg, rgba(45, 106, 79, 0.1) 0%, rgba(27, 67, 50, 0.1) 100%);
+    color: #1b4332;
+    transform: scale(1.02);
 }
 
 .drop-zone.dragover {
-    border-color: #333;
-    background-color: #f0f0f0;
-    color: #333;
+    border-color: #2d6a4f;
+    border-style: solid;
+    background: linear-gradient(135deg, rgba(45, 106, 79, 0.2) 0%, rgba(27, 67, 50, 0.2) 100%);
+    color: #2d6a4f;
+    transform: scale(1.05);
+    font-weight: bold;
 }
 
-/* Requisito 3.9: Estilos para la descripción extendida (modal) */
+/* Estilos para error en drop-zone */
+.drop-zone .text-danger {
+    color: #dc3545 !important;
+}
+
+.drop-zone .text-success {
+    color: #198754 !important;
+}
+
+/* Requisito 3.9: Ventana de detalles (Modal) [cite: 740, 741, 742] */
 .detalles-overlay {
     position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.7); /* Opacidad menor a 1 */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85); /* Opacidad menor a 1 [cite: 741] */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -61,62 +201,123 @@ header h1 {
 
 .detalles-modal {
     background: white;
-    width: 80%;
-    height: 70%;
+    width: 85%;
     max-width: 900px;
-    border-radius: 8px;
+    height: 70vh;
+    border-radius: 12px;
     overflow: hidden;
     position: relative;
+    display: flex;
 }
 
-.detalles-scroll {
+/* Requisito 761: Imagen manteniendo relación de aspecto [cite: 761] */
+.detalles-img-container {
+    flex: 0 0 45%;
+    background-color: #f1f1f1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.detalles-img-container img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+/* Requisito 762: Columna de detalles con scroll [cite: 762] */
+.detalles-info {
+    flex: 1;
+    padding: 30px;
     overflow-y: auto;
-    height: 100%;
 }
 
 .btn-close-modal {
     position: absolute;
-    top: 10px; right: 15px;
-    font-size: 2rem;
-    border: none; background: none;
-    cursor: pointer; z-index: 10;
-}
-
-/* Botón carrito circular sobre imagen (Requisito 606) */
-.btn-carrito-icon {
-    position: absolute;
-    top: 10px; right: 10px;
-    width: 40px; height: 40px;
-    border-radius: 50%;
-    background: white;
-    border: 1px solid #ddd;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    top: 15px;
+    right: 20px;
+    font-size: 1.5rem;
+    border: none;
+    background: none;
     cursor: pointer;
+    color: #333;
 }
 
-.aviso-añadido {
-    position: absolute;
-    top: -30px; right: 0;
-    background: #28a745;
-    color: white;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    animation: fadeInOut 1.5s forwards;
-}
+/* --- PAGINACIÓN Y PIE --- */
 
-@keyframes fadeInOut {
-    0% { opacity: 0; transform: translateY(5px); }
-    20% { opacity: 1; transform: translateY(0); }
-    80% { opacity: 1; }
-    100% { opacity: 0; }
+/* Requisito 627: Menú de navegación horizontal para paginación  */
+#paginacion-btns button {
+    margin: 0 5px;
+    min-width: 40px;
 }
 
 /* Requisito 3.7: Pie de página pegado abajo */
 footer {
-    margin-top: auto;
-    background-color: #444;
+    background: linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%);
     color: white;
+    padding: 20px 0;
     text-align: center;
-    padding: 0.5rem;
+    margin-top: auto;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+}
+
+/* Estilos adicionales para el carrito */
+.producto-carrito {
+    transition: background-color 0.2s;
+}
+
+.producto-carrito:hover {
+    background-color: #f8f9fa;
+}
+
+.cantidad-carrito {
+    text-align: center;
+}
+
+.btn-eliminar-carrito {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+}
+
+/* Estilos para botones */
+.btn-dark {
+    background: linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%);
+    border: none;
+    transition: transform 0.2s;
+}
+
+.btn-dark:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(45, 106, 79, 0.4);
+}
+
+.btn-outline-dark:hover {
+    background: linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%);
+    border-color: #2d6a4f;
+}
+
+/* Barra de navegación mejorada */
+.navbar {
+    background: white !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Mobile responsive */
+@media (max-width: 992px) {
+    .layout-tienda {
+        flex-direction: column;
+    }
+    
+    aside {
+        width: 100%;
+        min-width: unset;
+        position: relative;
+        top: 0;
+    }
+    
+    .detalles-modal {
+        flex-direction: column;
+        height: 90vh;
+    }
 }
