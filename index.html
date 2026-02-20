@@ -2,91 +2,97 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>La tienda de DAWEWIWOWU</title>
-    <link rel="icon" href="imagenes/productos/favicono.jpg">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tienda de Ocio - Proyecto DAWE</title>
+    <link rel="icon" href="imagenes/productos/favicono.jpg" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<div class="contenedor">
-    <header>
-        <h1>La tienda de DAWEWIWOWU</h1>
-    </header>
+    <div class="container container-principal shadow-lg">
+        
+        <header class="py-4 border-bottom">
+            <h1 class="text-center display-4 fw-bold">LA TIENDA DE DAWEWIWOWU</h1>
+        </header>
 
-    <nav>
-        <ul>
-            <li><a href="#">Inicio</a></li>
-            <li>
-                <a href="#" data-bs-toggle="offcanvas" data-bs-target="#carrito">
-                    Carrito de la compra
-                </a>
-            </li>
-        </ul>
-    </nav>
-
-    <div class="contenido">
-        <main>
-            <div class="main-header">
-                <h2 id="titulo-main">Todos los productos</h2>
-                <input type="text" id="buscador" class="form-control w-25" placeholder="Buscar por nombre">
-            </div>
-
-            <div class="row row-cols-1 row-cols-md-3 g-4" id="productos"></div>
-
-            <div class="paginacion mt-4" id="paginacion-info">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top px-3 shadow-sm">
+            <div class="container-fluid">
+                <span class="navbar-brand">Menú</span>
+                <div class="d-flex flex-grow-1 mx-lg-5">
+                    <input type="text" id="buscador" class="form-control" placeholder="Buscar productos por nombre...">
                 </div>
-        </main>
-
-        <aside>
-            <h3>Añadir productos</h3>
-            <form id="form-producto">
-                <select class="form-control mb-2" id="tipo-nuevo">
-                    <option value="" selected disabled>Escoge un tipo</option>
-                    <option value="JuegoMesa">Juego de mesa</option>
-                    <option value="Videojuego">Videojuego</option>
-                    <option value="Libro">Libro</option>
-                    <option value="Musica">Música</option>
-                    <option value="Pelicula">Película</option>
-                </select>
-        
-            <input type="text" id="nombre-nuevo" class="form-control mb-2" placeholder="Nombre" required>
-            <input type="number" id="precio-nuevo" class="form-control mb-2" placeholder="Precio" required>
-            <textarea id="desc-nuevo" class="form-control mb-2" placeholder="Descripción"></textarea>
-        
-            <div id="contenedor-extra" style="display: none;">
-                <label id="label-extra" for="extra-nuevo" class="form-label small"></label>
-                <input type="text" id="extra-nuevo" class="form-control mb-2">
+                <button class="btn btn-outline-dark ms-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasCarrito">
+                    🛒 Carrito
+                </button>
             </div>
+        </nav>
 
-            <input type="file" class="form-control mb-2" id="foto-producto" accept="image/*">
-        
-            <div class="drop-zone mb-2" id="drop-zone">
-                Arrastra tu imagen aquí
-            </div>
+        <div class="layout-tienda flex-grow-1">
+            
+            <main class="p-4">
+                <h2 id="titulo-main" class="mb-4">Todos los productos</h2>
+                
+                <div id="productos" class="row row-cols-1 row-cols-md-3 g-4">
+                    </div>
 
-            <button type="submit" class="btn btn-dark w-100">Subir producto</button>
+                <div class="mt-5 py-4 border-top">
+                    <div id="info-paginacion" class="text-center text-muted mb-3 small"></div>
+                    <div id="paginacion-btns" class="d-flex justify-content-center align-items-center">
+                        </div>
+                </div>
+            </main>
 
-            <div id="mensaje-exito" class="alert alert-success mt-2" style="display: none;"></div>
-            <div id="mensaje-error" class="alert alert-danger mt-2" style="display: none;"></div>
-            </form>
-        </aside>
+            <aside class="bg-light">
+                <h3 class="border-bottom pb-2">Añadir Producto</h3>
+                <form id="form-producto">
+                    <select class="form-select mb-2" id="tipo-nuevo" required>
+                        <option value="" selected disabled>Escoge un tipo</option>
+                        <option value="JuegoMesa">Juego de mesa</option>
+                        <option value="Videojuego">Videojuego</option>
+                        <option value="Libro">Libro</option>
+                        <option value="Musica">Música</option>
+                        <option value="Pelicula">Película</option>
+                    </select>
+
+                    <input type="text" id="nombre-nuevo" class="form-control mb-2" placeholder="Nombre" required>
+                    <input type="number" id="precio-nuevo" class="form-control mb-2" placeholder="Precio (€)" required step="0.01">
+                    <textarea id="desc-nuevo" class="form-control mb-2" placeholder="Descripción breve..." rows="3"></textarea>
+
+                    <div id="contenedor-extra" class="mb-2" style="display: none;">
+                        <label id="label-extra" class="form-label small fw-bold mb-1"></label>
+                        <input type="text" id="extra-nuevo" class="form-control">
+                    </div>
+
+                    <input type="file" id="foto-producto" class="d-none" accept="image/jpeg,image/jpg,image/png">
+                    
+                    <div id="drop-zone" class="drop-zone mb-3" onclick="document.getElementById('foto-producto').click()">
+                        Arrastra tu imagen aquí o haz clic
+                    </div>
+
+                    <button type="submit" class="btn btn-dark w-100">Registrar Producto</button>
+                </form>
+            </aside>
+        </div>
+
+        <footer class="py-3 bg-dark text-white text-center mt-auto">
+            <p class="mb-0">&copy; Proyecto DAWE.</p>
+        </footer>
+
     </div>
 
-    <footer>Copyright DAWE</footer>
-</div>
-
-<div class="offcanvas offcanvas-start" id="carrito">
-    <div class="offcanvas-header">
-        <h5>Carrito de la compra</h5>
-        <button class="btn-close" data-bs-dismiss="offcanvas"></button>
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasCarrito">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title">Tu Carrito</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body" id="carrito-body">
+            <p class="text-muted text-center">El carrito está vacío.</p>
+        </div>
     </div>
-    <div class="offcanvas-body" id="carrito-body">
-        <p>No hay productos en el carrito.</p>
-    </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script type="module" src="js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>

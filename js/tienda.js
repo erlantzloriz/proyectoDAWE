@@ -22,17 +22,17 @@ export let listaProductos = [
     // Libros
     new Libro("Maus", 27.5, "Novela gráfica histórica.", "imagenes/maus.jpg", "Reservoir Books"),
     new Libro("13, Rúe del Percebe", 29, "Cómic clásico español.", "imagenes/13rue.jpg", "Bruguera"),
-    new Libro("El Quijote", 15, "Clásico literario.", null, "Espasa"),
+    new Libro("El Quijote", 15, "Clásico literario.", "imagenes/quijote.jpg", "Espasa"),
 
     // Musica
-    new Musica("Abbey Road", 35, "Álbum de The Beatles.", "imagenes/beatles.jpg", "Apple Records"),
-    new Musica("Thriller", 25, "Rey del pop.", "imagenes/thriller.jpg", "Epic Records"),
-    new Musica("Discovery", 45, "Electrónica Daft Punk.", "imagenes/daft.jpg", "Virgin"),
+    new Musica("Abbey Road", 35, "Álbum de The Beatles.", "imagenes/beatles.jpg", "The Beatles"),
+    new Musica("Thriller", 25, "Rey del pop.", "imagenes/thriller.jpg", "Michael Jackson"),
+    new Musica("Discovery", 45, "Electrónica Daft Punk.", "imagenes/daft.jpg", "Daft Punk"),
 
     // Películas
     new Pelicula("Metrópolis", 18, "Cine expresionista.", "imagenes/metropolis.jpg", "Fritz Lang"),
     new Pelicula("El Padrino", 20, "Drama criminal.", "imagenes/padrino.jpg", "F.F. Coppola"),
-    new Pelicula("Pulp Fiction", 22, "Cine de culto.", "imagenes/pulp.jpg", "Tarantino")
+    new Pelicula("Pulp Fiction", 22, "Cine de culto.", "imagenes/pulp.jpg", "Quentin Tarantino")
 ];
 
 export async function cargarCatalogo() {
@@ -74,8 +74,14 @@ export function registrarNuevoProducto(datos) {
         nuevo = new Videojuego(datos.nombre, datos.precio, datos.descripcion, datos.imagen, datos.extra);
     } else if (datos.tipo === "JuegoMesa") {
         nuevo = new JuegoMesa(datos.nombre, datos.precio, datos.descripcion, datos.imagen, datos.extra);
+    } else if (datos.tipo === "Libro") {
+        nuevo = new Libro(datos.nombre, datos.precio, datos.descripcion, datos.imagen, datos.extra);
+    } else if (datos.tipo === "Musica") {
+        nuevo = new Musica(datos.nombre, datos.precio, datos.descripcion, datos.imagen, datos.extra);
+    } else if (datos.tipo === "Pelicula") {
+        nuevo = new Pelicula(datos.nombre, datos.precio, datos.descripcion, datos.imagen, datos.extra);
     } else {
-        // Por si añades clase Puzzle más tarde
+        // Por si no coincide con ninguno, crear como JuegoMesa por defecto
         nuevo = new JuegoMesa(datos.nombre, datos.precio, datos.descripcion, datos.imagen, datos.extra);
     }
     
