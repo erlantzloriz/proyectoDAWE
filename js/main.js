@@ -1,273 +1,182 @@
-import { listaProductos, carrito, cargarCatalogo, agregarAlCarrito, registrarNuevoProducto } from './tienda.js';
-import { calcularTotalPaginas, truncarTexto, esImagenValida } from './utils.js';
-import { Videojuego } from './clases/Videojuego.js';
-import { JuegoMesa } from './clases/JuegoMesa.js';
-import { Libro } from './clases/Libro.js';
-import { Musica } from './clases/Musica.js';
-import { Pelicula } from './clases/Pelicula.js';
+import { listaProductos, agregarAlCarrito, registrarNuevoProducto, carrito } from './tienda.js';
+import { truncarTexto } from './utils.js';
 
-const contenedor = document.getElementById("productos");
+// --- ESTADO GLOBAL ---
+let paginaActual = 1;
+const PRODUCTOS_POR_PAGINA = 6; // Máximo por página (Requisito 821)
+let productosFiltrados = [...listaProductos];
+
+// --- SELECTORES ---
+const gridProductos = document.getElementById("productos");
 const buscador = document.getElementById("buscador");
 const tituloPrincipal = document.getElementById("titulo-main");
-let paginaActual = 1;
-let productosFiltrados = listaProductos;
-
-
-async function init() {
-    await cargarCatalogo();
-    renderizarProductos(listaProductos);
-}
-
-function renderizarProductos(lista) {
-    if (!contenedor) return;
-    contenedor.innerHTML = "";
-
-    // Si la lista está vacía, no intentamos iterar
-    if (lista.length === 0) {
-        contenedor.innerHTML = "<p class='p-3'>No se han encontrado productos.</p>";
-        return;
-    }
-
-    // Lógica de Paginación (Requisito 5.2)
-    const inicio = (paginaActual - 1) * 6; // 6 productos por página
-    const fin = inicio + 6;
-    const productosVisibles = lista.slice(inicio, fin);
-
-    productosVisibles.forEach(prod => {
-        // Validación de seguridad para evitar el error de 'prod is undefined'
-        if (!prod) return;
-
-        // Requisito 4.1.2: Acceder al atributo extra según la clase
-        let valorExtra = "";
-        if (prod instanceof Videojuego) valorExtra = `Compañía: ${prod.compania}`;
-        else if (prod instanceof JuegoMesa) valorExtra = `Jugadores: ${prod.jugadores}`;
-        else if (prod instanceof Libro) valorExtra = `Editorial: ${prod.editorial}`;
-        else if (prod instanceof Musica) valorExtra = `Artista: ${prod.artista}`;
-        else if (prod instanceof Pelicula) valorExtra = `Director: ${prod.director}`;
-
-        contenedor.innerHTML += `
-            <div class="col">
-                <div class="card h-100 producto card-custom"> 
-                    <button class="btn btn-carrito" data-id="${prod.id}">🛒</button>
-                    <img src="${prod.imagen || 'imagenes/default.png'}" class="card-img-top">
-                    <div class="card-body">
-                        <h5>${truncarTexto(prod.nombre, 25)}</h5>
-                        <p class="fw-bold">${prod.precio}€</p>
-                        <p class="text-muted small">${valorExtra}</p>
-                        <p class="card-text">${truncarTexto(prod.descripcion, 100)}</p>
-                    </div>
-                </div>
-            </div>`;
-    });
-    
-    configurarEventosBotones();
-    renderizarPaginacion(lista.length); 
-}
-
-
-function renderizarPaginacion(totalProductos) {
-    const totalPaginas = Math.ceil(totalProductos / 6);
-    const navPaginacion = document.getElementById("paginacion-info");
-    
-    if (!navPaginacion) return;
-    
-    // Texto informativo: "Mostrando X de Y productos" 
-    let html = `<p>Mostrando ${Math.min(6, totalProductos)} de ${totalProductos} productos.</p>`;
-    html += `<ul class="pagination">`;
-
-    if (paginaActual > 1) {
-        html += `<li class="page-item"><button class="page-link" id="btn-prev">Anterior</button></li>`;
-    }
-
-    for (let i = 1; i <= totalPaginas; i++) {
-        html += `<li class="page-item ${i === paginaActual ? 'active' : ''}">
-                    <button class="page-link btn-page" data-page="${i}">${i}</button>
-                 </li>`;
-    }
-
-    if (paginaActual < totalPaginas) {
-        html += `<li class="page-item"><button class="page-link" id="btn-next">Siguiente</button></li>`;
-    }
-
-    navPaginacion.innerHTML = html + `</ul>`;
-
-    // Eventos de los botones
-    document.querySelectorAll(".btn-page").forEach(btn => {
-        btn.onclick = () => { paginaActual = parseInt(btn.dataset.page); renderizarProductos(productosFiltrados); };
-    });
-    if(document.getElementById("btn-prev")) 
-        document.getElementById("btn-prev").onclick = () => { paginaActual--; renderizarProductos(productosFiltrados); };
-    if(document.getElementById("btn-next")) 
-        document.getElementById("btn-next").onclick = () => { paginaActual++; renderizarProductos(productosFiltrados); };
-}
-    
-
-function configurarEventosBotones() {
-    document.querySelectorAll(".btn-carrito").forEach(btn => {
-        btn.onclick = () => {
-            agregarAlCarrito(btn.dataset.id);
-            pintarCarrito();
-            
-            // Requisito: Aviso temporal de éxito
-            const aviso = document.createElement("span");
-            aviso.className = "badge bg-success position-absolute";
-            aviso.textContent = "¡Añadido!";
-            btn.parentElement.appendChild(aviso);
-            setTimeout(() => aviso.remove(), 1500);
-        };
-    });
-}
-
-function pintarCarrito() {
-    const cuerpo = document.getElementById("carrito-body");
-    const items = Object.entries(carrito);
-    if (items.length === 0) {
-        cuerpo.innerHTML = "<p>El carrito está vacío.</p>";
-        return;
-    }
-    let html = "";
-    let total = 0;
-    items.forEach(([id, item]) => {
-        total += item.precio * item.cantidad;
-        html += `<div class="mb-3 border-bottom pb-2">
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <strong>${item.nombre}</strong><br>
-                    <small class="text-muted">${item.precio}€/ud</small>
-                </div>
-                <button class="btn btn-sm btn-danger" onclick="window.eliminarDelCarrito('${id}')">🗑️</button>
-            </div>
-            <div class="d-flex align-items-center mt-2">
-                <button class="btn btn-sm btn-secondary" onclick="window.modificarCantidad('${id}', -1)">-</button>
-                <span class="mx-3">${item.cantidad}</span>
-                <button class="btn btn-sm btn-secondary" onclick="window.modificarCantidad('${id}', 1)">+</button>
-                <span class="ms-auto fw-bold">${(item.cantidad * item.precio).toFixed(2)}€</span>
-            </div>
-        </div>`;
-    });
-    html += `<div class="mt-3 pt-2 border-top">
-        <div class="d-flex justify-content-between">
-            <strong>Total:</strong>
-            <strong>${total.toFixed(2)}€</strong>
-        </div>
-        <button class="btn btn-danger w-100 mt-3" onclick="window.vaciarCarrito()">Vaciar carrito</button>
-    </div>`;
-    cuerpo.innerHTML = html;
-}
-
-function eliminarDelCarrito(id) {
-    delete carrito[id];
-    pintarCarrito();
-}
-
-function modificarCantidad(id, cambio) {
-    if (!carrito[id]) return;
-    const nuevaCantidad = carrito[id].cantidad + cambio;
-    if (nuevaCantidad <= 0) {
-        eliminarDelCarrito(id);
-    } else if (nuevaCantidad <= 20) {
-        carrito[id].cantidad = nuevaCantidad;
-        pintarCarrito();
-    }
-}
-
-function vaciarCarrito() {
-    if (confirm('¿Seguro que quieres vaciar el carrito?')) {
-        Object.keys(carrito).forEach(key => delete carrito[key]);
-        pintarCarrito();
-    }
-}
-
-// Exponer funciones al scope global para onclick
-window.eliminarDelCarrito = eliminarDelCarrito;
-window.modificarCantidad = modificarCantidad;
-window.vaciarCarrito = vaciarCarrito;
-
-if (buscador) {
-    buscador.oninput = () => {
-        // Obtenemos el valor y quitamos espacios en blanco innecesarios 
-        const query = buscador.value.trim().toLowerCase();
-        const tituloMain = document.getElementById("titulo-main"); 
-        
-        // Requisito : Si está vacío, "Todos los productos", si no "Buscando por: xxx"
-        if (query === "") {
-            tituloMain.textContent = "Todos los productos"; 
-            productosFiltrados = [...listaProductos]; // Restauramos el orden original 
-        } else {
-            tituloMain.textContent = `Buscando por: ${query}`; 
-            // Requisito : Filtrar ignorando mayúsculas/minúsculas 
-            productosFiltrados = listaProductos.filter(p => 
-                p.nombre.toLowerCase().includes(query)
-            );
-        }
-
-        //  Siempre volver a la página 1 al filtrar 
-        paginaActual = 1; 
-        
-        // Re-renderizamos la tienda con la lista filtrada 
-        renderizarProductos(productosFiltrados);
-    };
-}
-
-init();
-
+const selectorTipo = document.getElementById("tipo-nuevo");
+const contenedorExtra = document.getElementById("contenedor-extra");
+const labelExtra = document.getElementById("label-extra");
+const dropZone = document.getElementById("drop-zone");
+const inputFoto = document.getElementById("foto-producto");
 const form = document.getElementById("form-producto");
 
-if (form) {
-    form.addEventListener("submit", (e) => {
-        e.preventDefault();
+// --- INICIALIZACIÓN ---
+document.addEventListener("DOMContentLoaded", () => {
+    renderizarTienda();
+});
 
-        const tipo = document.getElementById("tipo-nuevo").value;
+// --- RENDERIZADO DE TIENDA Y PAGINACIÓN ---
+function renderizarTienda() {
+    if (!gridProductos) return;
+    gridProductos.innerHTML = "";
 
-        // Requisito: Validar selección de tipo 
-        if (tipo === "" || tipo === "Escoge un tipo") {
-            alert("Es necesario escoger un valor de tipo");
-            return;
-        }
+    const inicio = (paginaActual - 1) * PRODUCTOS_POR_PAGINA;
+    const itemsVisibles = productosFiltrados.slice(inicio, inicio + PRODUCTOS_POR_PAGINA);
 
-        // 1. Capturar el archivo de imagen (Solo una vez)
-        const archivoInput = document.querySelector('input[type="file"]');
-        const archivo = archivoInput.files[0];
-    
-        // Requisito: Validar formato de imagen
-        if (archivo && !['image/jpeg', 'image/png', 'image/jpg'].includes(archivo.type)) {
-            alert("La imagen debe ser JPG/JPEG o PNG");
-            return;
-        }
-        
-        // Requisito: Crear URL temporal o usar la de por defecto 
-        let imagenURL = "imagenes/productos/default.jpg"; 
-        if (archivo) {
-            imagenURL = URL.createObjectURL(archivo);
-        }
-
-        // 2. Recoger datos del formulario 
-        const nuevoProdDatos = {
-            tipo: tipo,
-            nombre: document.getElementById("nombre-nuevo").value,
-            precio: document.getElementById("precio-nuevo").value,
-            descripcion: document.getElementById("desc-nuevo").value,
-            extra: document.getElementById("extra-nuevo").value,
-            imagen: imagenURL
+    itemsVisibles.forEach(p => {
+        const card = document.createElement("div");
+        card.className = "col";
+        card.innerHTML = `
+            <div class="card h-100 producto position-relative">
+                <button class="btn-carrito-icon" data-id="${p.id}">🛒</button>
+                <img src="${p.imagen || 'imagenes/productos/default.jpg'}" class="card-img-top" alt="${p.nombre}">
+                <div class="card-body">
+                    <h5 class="card-title">${truncarTexto(p.nombre, 25)}</h5>
+                    <p class="fw-bold text-primary">${p.precio}€</p>
+                    <p class="card-text small text-muted">${truncarTexto(p.descripcion, 80)}</p>
+                </div>
+            </div>
+        `;
+        // Requisito 740: Descripción extendida al pinchar la imagen
+        card.querySelector("img").onclick = () => mostrarDetalles(p);
+        card.querySelector(".btn-carrito-icon").onclick = (e) => {
+            agregarAlCarrito(p.id);
+            mostrarAvisoAñadido(e.target);
         };
-
-        // 3. Registrar en la lógica de la tienda 
-        registrarNuevoProducto(nuevoProdDatos);
-
-        // 4. Actualizar lista y paginación  
-        productosFiltrados = [...listaProductos]; // Actualizamos la lista de búsqueda
-        renderizarProductos(productosFiltrados);
-
-        // 5. Limpiar formulario y mostrar mensaje temporal  
-        form.reset();
-        
-        // Reemplazo del alert por un mensaje temporal en el formulario
-        const avisoExito = document.getElementById("mensaje-exito"); // HAy que tener este ID en el HTML
-        avisoExito.textContent = "¡Producto añadido con éxito!";
-        avisoExito.style.display = "block";
-        
-        setTimeout(() => {
-            avisoExito.style.display = "none";
-        }, 2000); 
+        gridProductos.appendChild(card);
     });
+
+    actualizarControlesPaginacion();
+}
+
+function actualizarControlesPaginacion() {
+    const total = productosFiltrados.length;
+    const totalPaginas = Math.ceil(total / PRODUCTOS_POR_PAGINA);
+    const infoPag = document.getElementById("info-paginacion");
+    
+    // Requisito 628: Mostrar cantidad actual y total
+    infoPag.textContent = `Mostrando ${Math.min(PRODUCTOS_POR_PAGINA, total - (paginaActual-1)*PRODUCTOS_POR_PAGINA)} de ${total} productos.`;
+
+    const contenedorBotones = document.getElementById("paginacion-btns");
+    contenedorBotones.innerHTML = "";
+
+    // Botón Anterior (Requisito 641)
+    if (paginaActual > 1) {
+        const btnPrev = crearBtnPagina("Anterior", () => { paginaActual--; renderizarTienda(); });
+        contenedorBotones.appendChild(btnPrev);
+    }
+
+    // Botones numéricos (Requisito 632)
+    for (let i = 1; i <= totalPaginas; i++) {
+        const btn = crearBtnPagina(i, () => { paginaActual = i; renderizarTienda(); }, i === paginaActual);
+        contenedorBotones.appendChild(btn);
+    }
+
+    // Botón Siguiente (Requisito 634)
+    if (paginaActual < totalPaginas) {
+        const btnNext = crearBtnPagina("Siguiente", () => { paginaActual++; renderizarTienda(); });
+        contenedorBotones.appendChild(btnNext);
+    }
+}
+
+function crearBtnPagina(texto, accion, activo = false) {
+    const btn = document.createElement("button");
+    btn.className = `btn btn-sm mx-1 ${activo ? 'btn-dark' : 'btn-outline-dark'}`;
+    btn.textContent = texto;
+    btn.onclick = accion;
+    return btn;
+}
+
+// --- BUSCADOR (Requisito 5.1) ---
+buscador.oninput = () => {
+    const query = buscador.value.trim().toLowerCase();
+    tituloPrincipal.textContent = query === "" ? "Todos los productos" : `Buscando por: ${query}`;
+    
+    productosFiltrados = listaProductos.filter(p => p.nombre.toLowerCase().includes(query));
+    paginaActual = 1; // Reset a página 1 (Requisito 818)
+    renderizarTienda();
+};
+
+// --- FORMULARIO Y CAMPO EXTRA (Requisito 5.3) ---
+selectorTipo.onchange = () => {
+    const tipo = selectorTipo.value;
+    if (!tipo || tipo === "Escoge un tipo") {
+        contenedorExtra.style.display = "none";
+    } else {
+        contenedorExtra.style.display = "block";
+        const labels = { "Videojuego": "Compañía", "Libro": "Editorial", "Musica": "Artista", "Pelicula": "Director", "JuegoMesa": "Jugadores" };
+        labelExtra.textContent = labels[tipo] || "Dato Extra";
+    }
+};
+
+// --- DRAG & DROP (Requisito 840) ---
+dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add("dragover"); };
+dropZone.ondragleave = () => dropZone.classList.remove("dragover");
+dropZone.ondrop = (e) => {
+    e.preventDefault();
+    dropZone.classList.remove("dragover");
+    if (e.dataTransfer.files.length > 0) {
+        inputFoto.files = e.dataTransfer.files;
+        const txtOriginal = dropZone.textContent;
+        dropZone.textContent = "¡Elemento añadido!"; // Requisito 688
+        setTimeout(() => dropZone.textContent = txtOriginal, 1500);
+    }
+};
+
+// --- GESTIÓN DEL FORMULARIO ---
+form.onsubmit = (e) => {
+    e.preventDefault();
+    const datos = {
+        tipo: selectorTipo.value,
+        nombre: document.getElementById("nombre-nuevo").value,
+        precio: document.getElementById("precio-nuevo").value,
+        descripcion: document.getElementById("desc-nuevo").value,
+        extra: document.getElementById("extra-nuevo").value,
+        imagen: inputFoto.files[0] ? URL.createObjectURL(inputFoto.files[0]) : null
+    };
+
+    registrarNuevoProducto(datos);
+    productosFiltrados = [...listaProductos];
+    renderizarTienda();
+    form.reset();
+    contenedorExtra.style.display = "none";
+};
+
+function mostrarAvisoAñadido(btn) {
+    const aviso = document.createElement("div");
+    aviso.className = "aviso-añadido";
+    aviso.textContent = "¡Añadido!";
+    btn.parentElement.appendChild(aviso);
+    setTimeout(() => aviso.remove(), 1500);
+}
+
+// Requisito 3.9: Modal de detalles
+function mostrarDetalles(p) {
+    const overlay = document.createElement("div");
+    overlay.className = "detalles-overlay";
+    overlay.innerHTML = `
+        <div class="detalles-modal shadow-lg">
+            <button class="btn-close-modal">×</button>
+            <div class="row g-0 h-100">
+                <div class="col-md-5 d-flex align-items-center justify-content-center bg-light">
+                    <img src="${p.imagen || 'imagenes/productos/default.jpg'}" class="img-fluid p-3" style="max-height: 80%">
+                </div>
+                <div class="col-md-7 p-4 detalles-scroll">
+                    <h3>${p.nombre}</h3>
+                    <p class="h4 text-primary">${p.precio}€</p>
+                    <hr>
+                    <p><strong>Detalle:</strong> ${p.extra || 'N/A'}</p>
+                    <p>${p.descripcion.repeat(5)}</p> </div>
+            </div>
+        </div>
+    `;
+    overlay.querySelector(".btn-close-modal").onclick = () => overlay.remove();
+    document.body.appendChild(overlay);
 }
