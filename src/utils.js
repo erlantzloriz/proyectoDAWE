@@ -1,7 +1,8 @@
 const modulos = import.meta.glob('./assets/imagenes/*.{jpg,jpeg,png}', { eager: true, import: 'default' });
+import noImage from './assets/imagenes/no-image.svg';
 
 export function resolverImagen(ruta) {
-    if (!ruta) return null;
+    if (!ruta) return noImage;
     if (ruta.startsWith('blob:') || ruta.startsWith('http') || ruta.startsWith('data:')) return ruta;
     const nombre = ruta.split('/').pop();
     const key = `./assets/imagenes/${nombre}`;
