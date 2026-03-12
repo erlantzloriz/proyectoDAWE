@@ -11,7 +11,7 @@ export class Producto {
         this.#nombre = nombre;
         this.#precio = precio;
         this.#descripcion = descripcion;
-        this.#imagen = imagen || "imagenes/no-image.png"; 
+        this.#imagen = imagen || null; 
         this.#id = generarId(nombre); 
     }
 
