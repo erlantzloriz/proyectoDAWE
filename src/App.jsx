@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { listaProductos, agregarAlCarrito, registrarNuevoProducto, carrito } from './tienda.js';
+import { listaProductos, agregarAlCarrito, registrarNuevoProducto, carrito, MAX_COPIAS } from './tienda.js';
 import TarjetaProducto from './componentes/TarjetaProducto.jsx';
 import Paginacion from './componentes/Paginacion.jsx';
 import FormularioProducto from './componentes/FormularioProducto.jsx';
@@ -17,6 +17,7 @@ function App() {
   const [carritoAbierto, setCarritoAbierto] = useState(false);
   const [productoDetalle, setProductoDetalle] = useState(null);
   const [, forceUpdate] = useState(0);
+  const [mensajeMax, setMensajeMax] = useState('');
 
   const productosFiltrados = listaProductos.filter(p =>
     p.nombre.toLowerCase().includes(busqueda.toLowerCase())
@@ -32,7 +33,11 @@ function App() {
   };
 
   const handleAgregarCarrito = (id) => {
-    agregarAlCarrito(id);
+    const maxAlcanzado = agregarAlCarrito(id);
+    if (maxAlcanzado) {
+      setMensajeMax(`No puedes añadir más de ${MAX_COPIAS} unidades del mismo producto.`);
+      setTimeout(() => setMensajeMax(''), 3000);
+    }
     forceUpdate(n => n + 1);
   };
 
@@ -51,8 +56,10 @@ function App() {
   const handleCambiarCantidad = (id, cantidad) => {
     if (isNaN(cantidad) || cantidad <= 0) {
       delete carrito[id];
-    } else if (cantidad > 20) {
-      carrito[id].cantidad = 20;
+    } else if (cantidad > MAX_COPIAS) {
+      carrito[id].cantidad = MAX_COPIAS;
+      setMensajeMax(`No puedes añadir más de ${MAX_COPIAS} unidades del mismo producto.`);
+      setTimeout(() => setMensajeMax(''), 3000);
     } else {
       carrito[id].cantidad = cantidad;
     }
@@ -134,6 +141,12 @@ function App() {
         <p className="mb-0">&copy; Proyecto DAWE.</p>
       </footer>
 
+      {mensajeMax && !carritoAbierto && (
+        <div className="alert alert-warning position-fixed bottom-0 end-0 m-3 shadow" role="alert" style={{ zIndex: 1060 }}>
+          {mensajeMax}
+        </div>
+      )}
+
       {carritoAbierto && (
         <Carrito
           carrito={carrito}
@@ -141,6 +154,7 @@ function App() {
           onEliminar={handleEliminarDeCarrito}
           onCambiarCantidad={handleCambiarCantidad}
           onVaciar={handleVaciarCarrito}
+          mensajeMax={mensajeMax}
         />
       )}
 

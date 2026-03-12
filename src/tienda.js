@@ -54,11 +54,16 @@ export async function cargarCatalogo() {
 
 export function agregarAlCarrito(id) {
     const p = listaProductos.find(prod => prod.id === id);
-    if (!p) return;
+    if (!p) return false;
     if (carrito[id]) {
-        if (carrito[id].cantidad < 20) carrito[id].cantidad++;
+        if (carrito[id].cantidad < MAX_COPIAS) {
+            carrito[id].cantidad++;
+            return false;
+        }
+        return true;
     } else {
         carrito[id] = { nombre: p.nombre, precio: p.precio, imagen: p.imagen, cantidad: 1 };
+        return false;
     }
 }
 

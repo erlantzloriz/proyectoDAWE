@@ -1,6 +1,6 @@
 import { truncarTexto, resolverImagen } from '../utils.js';
 
-export default function Carrito({ carrito, onCerrar, onEliminar, onCambiarCantidad, onVaciar }) {
+export default function Carrito({ carrito, onCerrar, onEliminar, onCambiarCantidad, onVaciar, mensajeMax }) {
   const entries = Object.entries(carrito);
   const total = entries.reduce((sum, [, item]) => sum + item.precio * item.cantidad, 0);
 
@@ -13,6 +13,11 @@ export default function Carrito({ carrito, onCerrar, onEliminar, onCambiarCantid
           <button className="btn-close" onClick={onCerrar} />
         </div>
         <div className="offcanvas-body p-3">
+          {mensajeMax && (
+            <div className="alert alert-warning py-2 mb-3" role="alert">
+              {mensajeMax}
+            </div>
+          )}
           {entries.length === 0 ? (
             <p className="text-muted text-center mt-4">El carrito está vacío.</p>
           ) : (
@@ -36,8 +41,6 @@ export default function Carrito({ carrito, onCerrar, onEliminar, onCambiarCantid
                           {item.precio}€ x{' '}
                           <input
                             type="number"
-                            min="1"
-                            max="20"
                             value={item.cantidad}
                             className="cantidad-carrito form-control form-control-sm d-inline-block"
                             style={{ width: '60px' }}
