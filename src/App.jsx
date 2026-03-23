@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { listaProductos, agregarAlCarrito, registrarNuevoProducto, carrito, MAX_COPIAS } from './tienda.js';
+import { listaProductos as productosIniciales, registrarNuevoProducto, MAX_COPIAS, guardarEnCarrito, borrarDelCarrito, cargarCarrito } from './tienda.js';
 import TarjetaProducto from './componentes/TarjetaProducto.jsx';
 import Paginacion from './componentes/Paginacion.jsx';
 import FormularioProducto from './componentes/FormularioProducto.jsx';
@@ -13,12 +13,14 @@ import MenuNavegacion from './componentes/MenuNavegacion.jsx';
 import EscaparateProductos from './componentes/EscaparateProductos.jsx';
 import Pie from './componentes/Pie.jsx';
 
+
 const PRODUCTOS_POR_PAGINA = 6;
 
 function App() {
   // 1. Añadimos los estados correctos para manejar la reactividad
   const [productos, setProductos] = useState(productosIniciales);
-  const [carrito, setCarrito] = useState({});
+  // Inicializamos el estado leyendo el localStorage
+  const [carrito, setCarrito] = useState(() => cargarCarrito());
   
   // 2. Mantenemos el resto de tus estados (¡quitando forceUpdate!)
   const [paginaActual, setPaginaActual] = useState(1);
@@ -45,35 +47,29 @@ function App() {
     if (!p) return;
 
     setCarrito(prevCarrito => {
-      const nuevoCarrito = { ...prevCarrito }; // Copiamos el carrito actual
+      const nuevoCarrito = { ...prevCarrito };
       
       if (nuevoCarrito[id]) {
         if (nuevoCarrito[id].cantidad < MAX_COPIAS) {
           nuevoCarrito[id].cantidad++;
+          guardarEnCarrito(id, nuevoCarrito[id]); // <--- GUARDAR EN LOCALSTORAGE
         } else {
           setMensajeMax(`No puedes añadir más de ${MAX_COPIAS} unidades del mismo producto.`);
           setTimeout(() => setMensajeMax(''), 3000);
         }
       } else {
         nuevoCarrito[id] = { nombre: p.nombre, precio: p.precio, imagen: p.imagen, cantidad: 1 };
+        guardarEnCarrito(id, nuevoCarrito[id]); // <--- GUARDAR EN LOCALSTORAGE
       }
-      return nuevoCarrito; // Al devolver un objeto nuevo, React sabe que debe repintar
+      return nuevoCarrito;
     });
-  };
-
-  const handleNuevoProducto = (datos) => {
-    const nuevoProd = registrarNuevoProducto(datos);
-    // Añadimos el nuevo producto al estado
-    setProductos(prevProductos => [...prevProductos, nuevoProd]);
-    
-    setBusqueda('');
-    setPaginaActual(1);
   };
 
   const handleEliminarDeCarrito = (id) => {
     setCarrito(prevCarrito => {
       const nuevoCarrito = { ...prevCarrito };
       delete nuevoCarrito[id];
+      borrarDelCarrito(id); // <--- BORRAR DE LOCALSTORAGE
       return nuevoCarrito;
     });
   };
@@ -84,12 +80,15 @@ function App() {
       
       if (isNaN(cantidad) || cantidad <= 0) {
         delete nuevoCarrito[id];
+        borrarDelCarrito(id); // <--- BORRAR DE LOCALSTORAGE
       } else if (cantidad > MAX_COPIAS) {
         nuevoCarrito[id].cantidad = MAX_COPIAS;
+        guardarEnCarrito(id, nuevoCarrito[id]); // <--- GUARDAR EN LOCALSTORAGE
         setMensajeMax(`No puedes añadir más de ${MAX_COPIAS} unidades del mismo producto.`);
         setTimeout(() => setMensajeMax(''), 3000);
       } else {
         nuevoCarrito[id].cantidad = cantidad;
+        guardarEnCarrito(id, nuevoCarrito[id]); // <--- GUARDAR EN LOCALSTORAGE
       }
       return nuevoCarrito;
     });
@@ -97,7 +96,9 @@ function App() {
 
   const handleVaciarCarrito = () => {
     if (window.confirm('¿Estás seguro de que quieres vaciar el carrito?')) {
-      setCarrito({}); // Simplemente establecemos el estado a un objeto vacío
+      // Borramos cada item del localStorage
+      Object.keys(carrito).forEach(id => borrarDelCarrito(id));
+      setCarrito({});
     }
   };
 

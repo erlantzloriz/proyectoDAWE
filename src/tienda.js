@@ -4,7 +4,6 @@ import { Libro } from './clases/Libro.js';
 import { Musica } from './clases/Musica.js';
 import { Pelicula } from './clases/Pelicula.js';
 
-export let carrito = {};
 export const DIVISA = '€';
 export const MAX_COPIAS = 20;
 
@@ -52,19 +51,34 @@ export async function cargarCatalogo() {
     }
 }
 
-export function agregarAlCarrito(id) {
-    const p = listaProductos.find(prod => prod.id === id);
-    if (!p) return false;
-    if (carrito[id]) {
-        if (carrito[id].cantidad < MAX_COPIAS) {
-            carrito[id].cantidad++;
-            return false;
+// 1. Guardar o actualizar un elemento del carrito en localStorage
+export function guardarEnCarrito(id, productoCarrito) {
+    // Se guarda el objeto JS como string 
+    localStorage.setItem(`producto_${id}`, JSON.stringify(productoCarrito));
+}
+
+// 2. Borrar un producto por su ID del localStorage
+export function borrarDelCarrito(id) {
+    // Borra usando el substring 'producto_' seguido del ID 
+    localStorage.removeItem(`producto_${id}`);
+}
+
+// 3. Cargar todo el carrito desde localStorage
+export function cargarCarrito() {
+    let carritoCargado = {};
+    
+    // Asumimos que puede haber más elementos en localStorage y filtramos 
+    for (let i = 0; i < localStorage.length; i++) {
+        const clave = localStorage.key(i);
+        
+        if (clave && clave.startsWith('producto_')) {
+            const id = clave.replace('producto_', '');
+            // Parseamos cada elemento para convertirlo en objeto JS 
+            carritoCargado[id] = JSON.parse(localStorage.getItem(clave));
         }
-        return true;
-    } else {
-        carrito[id] = { nombre: p.nombre, precio: p.precio, imagen: p.imagen, cantidad: 1 };
-        return false;
     }
+    return carritoCargado;//El PDF menciona devolver un arraypero como en React 
+    // estamos usando un diccionario (objeto) para el estado, lo devolvemos.
 }
 
 export function registrarNuevoProducto(datos) {
