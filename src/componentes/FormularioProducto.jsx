@@ -9,7 +9,7 @@ const ETIQUETAS_EXTRA = {
   JuegoMesa: 'Jugadores',
 };
 
-export default function FormularioProducto({ onRegistrar }) {
+export default function FormularioProducto({ onRegistrar, isOffline }) {
   const [tipo, setTipo] = useState('');
   const [nombre, setNombre] = useState('');
   const [precio, setPrecio] = useState('');
@@ -39,7 +39,7 @@ export default function FormularioProducto({ onRegistrar }) {
     setTimeout(() => setMensajeExito(false), 2000);
   };
 
-  return (
+ return (
     <>
       <form onSubmit={handleSubmit}>
         <select
@@ -47,13 +47,14 @@ export default function FormularioProducto({ onRegistrar }) {
           value={tipo}
           onChange={(e) => { setTipo(e.target.value); setExtra(''); }}
           required
+          disabled={isOffline}
         >
           <option value="" disabled>Escoge un tipo</option>
-          <option value="JuegoMesa">Juego de mesa</option>
           <option value="Videojuego">Videojuego</option>
           <option value="Libro">Libro</option>
           <option value="Musica">Música</option>
           <option value="Pelicula">Película</option>
+          <option value="JuegoMesa">Juego de Mesa</option>
         </select>
 
         <input
@@ -63,6 +64,7 @@ export default function FormularioProducto({ onRegistrar }) {
           value={nombre}
           onChange={(e) => setNombre(e.target.value)}
           required
+          disabled={isOffline}
         />
         <input
           type="number"
@@ -72,6 +74,7 @@ export default function FormularioProducto({ onRegistrar }) {
           onChange={(e) => setPrecio(e.target.value)}
           required
           step="0.01"
+          disabled={isOffline}
         />
         <textarea
           className="form-control mb-2"
@@ -79,6 +82,7 @@ export default function FormularioProducto({ onRegistrar }) {
           rows="3"
           value={descripcion}
           onChange={(e) => setDescripcion(e.target.value)}
+          disabled={isOffline}
         />
 
         {tipo && (
@@ -91,13 +95,17 @@ export default function FormularioProducto({ onRegistrar }) {
               className="form-control"
               value={extra}
               onChange={(e) => setExtra(e.target.value)}
+              disabled={isOffline}
             />
           </div>
         )}
 
-        <CampoDragDrop alSeleccionarImagen={setArchivo} archivoSeleccionado={archivo} />
+        {/* Le pasamos isOffline a nuestro componente hijo */}
+        <CampoDragDrop alSeleccionarImagen={setArchivo} archivoSeleccionado={archivo} isOffline={isOffline} />
 
-        <button type="submit" className="btn btn-dark w-100">Registrar Producto</button>
+        <button type="submit" className="btn btn-dark w-100" disabled={isOffline}>
+          Registrar Producto
+        </button>
       </form>
       {mensajeExito && (
         <div className="alert alert-success mt-3 mb-0">

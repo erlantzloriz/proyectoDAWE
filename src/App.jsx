@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { listaProductos, agregarAlCarrito, registrarNuevoProducto, carrito, MAX_COPIAS } from './tienda.js';
 import TarjetaProducto from './componentes/TarjetaProducto.jsx';
 import Paginacion from './componentes/Paginacion.jsx';
@@ -101,11 +101,27 @@ function App() {
     }
   };
 
+  // Nuevo estado para controlar si hay internet
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   return (
     <div className="container container-principal shadow-lg">
       <Cabecera titulo="LA TIENDA DE DAWEWIWOWU" />
       
-      <MenuNavegacion onAbrirCarrito={() => setCarritoAbierto(true)} />
+      <MenuNavegacion onAbrirCarrito={() => setCarritoAbierto(true)} isOffline={isOffline} />
 
       <div className="layout-tienda flex-grow-1">
         <EscaparateProductos
@@ -125,7 +141,7 @@ function App() {
 
         <aside className="bg-light">
           <h3 className="border-bottom pb-2">Añadir Producto</h3>
-          <FormularioProducto onRegistrar={handleNuevoProducto} />
+          <FormularioProducto onRegistrar={handleNuevoProducto} isOffline={isOffline} />
         </aside>
       </div>
 
