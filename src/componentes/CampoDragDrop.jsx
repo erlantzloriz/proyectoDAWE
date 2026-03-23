@@ -3,7 +3,7 @@ import { FileUploader } from 'react-drag-drop-files';
 
 const fileTypes = ["JPEG", "JPG", "PNG"];
 
-export default function CampoDragDrop({ alSeleccionarImagen, archivoSeleccionado }) {
+export default function CampoDragDrop({ alSeleccionarImagen, archivoSeleccionado, isOffline }) {
   const [estaArrastrando, setEstaArrastrando] = useState(false);
 
   return (
@@ -13,12 +13,17 @@ export default function CampoDragDrop({ alSeleccionarImagen, archivoSeleccionado
       types={fileTypes}
       onDraggingStateChange={setEstaArrastrando}
       multiple={false}
+      disabled={isOffline} // Deshabilita la subida
     >
       <div
-        className={`drop-zone mb-3 ${estaArrastrando ? 'dragover' : ''}`}
-        style={{ minHeight: '80px' }}
+        className={`drop-zone mb-3 ${estaArrastrando && !isOffline ? 'dragover' : ''}`}
+        style={{ 
+          minHeight: '80px',
+          backgroundColor: isOffline ? '#e9ecef' : '', // Fondo gris si offline
+          cursor: isOffline ? 'not-allowed' : 'pointer'
+        }}
       >
-        {estaArrastrando ? (
+        {estaArrastrando && !isOffline ? (
           'Suelta la imagen'
         ) : archivoSeleccionado ? (
           <div className="text-success">
@@ -26,7 +31,7 @@ export default function CampoDragDrop({ alSeleccionarImagen, archivoSeleccionado
             <div className="small mt-1">Clic para cambiar</div>
           </div>
         ) : (
-          'Arrastra tu imagen aquí o haz clic'
+          '' // Sin texto inicialmente según el PDF
         )}
       </div>
     </FileUploader>
