@@ -151,23 +151,43 @@ aside .btn {
     text-align: center;
     color: #6c757d;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: border-color 0.2s, background-color 0.2s, color 0.2s;
     background: linear-gradient(135deg, rgba(45, 106, 79, 0.05) 0%, rgba(27, 67, 50, 0.05) 100%);
     min-height: 80px;
+    width: 100%;
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
+.drop-uploader {
+    width: 100% !important;
+    display: block;
+}
 
+.drop-uploader label,
+.drop-uploader > div {
+    width: 100% !important;
+    display: block;
+}
 
+.drop-zone.is-disabled {
+    background: #e9ecef;
+    border-color: #adb5bd;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+.drop-zone-message {
+    font-weight: 700;
+    color: #1b4332;
+}
 .drop-zone.dragover {
     border-color: #2d6a4f;
     border-style: solid;
     background: linear-gradient(135deg, rgba(45, 106, 79, 0.2) 0%, rgba(27, 67, 50, 0.2) 100%);
     color: #2d6a4f;
-    transform: scale(1.05);
-    font-weight: bold;
 }
 
 .drop-zone .text-danger {

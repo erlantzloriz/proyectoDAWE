@@ -42,6 +42,17 @@ function App() {
     setPaginaActual(1);
   };
 
+  const handleNuevoProducto = (datos) => {
+    const payload = {
+      ...datos,
+      precio: Number.parseFloat(datos.precio),
+    };
+
+    const nuevo = registrarNuevoProducto(payload);
+    setProductos([...productosIniciales]);
+    setProductoDetalle(nuevo);
+  };
+
   const handleAgregarCarrito = (id) => {
     const p = productos.find(prod => prod.id === id);
     if (!p) return;
@@ -106,15 +117,62 @@ function App() {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
-    const handleOnline = () => setIsOffline(false);
-    const handleOffline = () => setIsOffline(true);
+    const updateByNavigator = () => setIsOffline(!navigator.onLine);
+
+    const internetCheckUrl = 'https://www.gstatic.com/generate_204';
+
+    const checkConnectivity = async () => {
+      if (!navigator.onLine) {
+        setIsOffline(true);
+        return;
+      }
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(() => controller.abort(), 3500);
+
+        try {
+          await fetch(`${internetCheckUrl}?t=${Date.now()}`, {
+            method: 'GET',
+            mode: 'no-cors',
+            cache: 'no-store',
+            signal: controller.signal,
+          });
+
+          setIsOffline(false);
+        } catch {
+          setIsOffline(true);
+        } finally {
+          window.clearTimeout(timeoutId);
+        }
+      } catch {
+        setIsOffline(true);
+      }
+    };
+
+    const handleOnline = () => {
+      updateByNavigator();
+      checkConnectivity();
+    };
+
+    const handleOffline = () => {
+      updateByNavigator();
+    };
+
+    updateByNavigator();
+    checkConnectivity();
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+    document.addEventListener('visibilitychange', checkConnectivity);
+
+    const intervalId = window.setInterval(checkConnectivity, 10000);
 
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      document.removeEventListener('visibilitychange', checkConnectivity);
+      window.clearInterval(intervalId);
     };
   }, []);
 
