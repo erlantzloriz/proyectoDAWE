@@ -65,7 +65,7 @@ export function borrarDelCarrito(id) {
 
 // 3. Cargar todo el carrito desde localStorage
 export function cargarCarrito() {
-    let carritoCargado = {};
+    const carritoCargado = [];
     
     // Asumimos que puede haber más elementos en localStorage y filtramos 
     for (let i = 0; i < localStorage.length; i++) {
@@ -73,12 +73,12 @@ export function cargarCarrito() {
         
         if (clave && clave.startsWith('producto_')) {
             const id = clave.replace('producto_', '');
-            // Parseamos cada elemento para convertirlo en objeto JS 
-            carritoCargado[id] = JSON.parse(localStorage.getItem(clave));
+            // Parseamos cada elemento y lo guardamos en un array
+            const producto = JSON.parse(localStorage.getItem(clave));
+            carritoCargado.push({ id, ...producto });
         }
     }
-    return carritoCargado;//El PDF menciona devolver un arraypero como en React 
-    // estamos usando un diccionario (objeto) para el estado, lo devolvemos.
+    return carritoCargado;
 }
 
 export function registrarNuevoProducto(datos) {

@@ -1,39 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { FileUploader } from 'react-drag-drop-files';
 
 const fileTypes = ["JPEG", "JPG", "PNG"];
 
 export default function CampoDragDrop({ alSeleccionarImagen, archivoSeleccionado, isOffline }) {
   const [estaArrastrando, setEstaArrastrando] = useState(false);
-  const dropTargetRef = useRef(null);
 
   const handleSeleccion = (archivo) => {
     alSeleccionarImagen(archivo);
     setEstaArrastrando(false);
   };
-
-  useEffect(() => {
-    const dropTarget = dropTargetRef.current;
-    if (!dropTarget) return;
-
-    const labelContenedor = dropTarget.closest('label');
-    if (!labelContenedor) return;
-
-    const bloquearClickEnDrop = (event) => {
-      if (isOffline) return;
-      event.preventDefault();
-      event.stopPropagation();
-      if (typeof event.stopImmediatePropagation === 'function') {
-        event.stopImmediatePropagation();
-      }
-    };
-
-    labelContenedor.addEventListener('click', bloquearClickEnDrop, true);
-
-    return () => {
-      labelContenedor.removeEventListener('click', bloquearClickEnDrop, true);
-    };
-  }, [isOffline]);
 
   return (
     <div className={`dd-field mb-3 ${isOffline ? 'is-disabled' : ''}`}>
@@ -56,7 +32,7 @@ export default function CampoDragDrop({ alSeleccionarImagen, archivoSeleccionado
         </div>
       </div>
 
-      <div className="dd-help">O suelta la imagen aqui</div>
+      <div className="dd-help">O suelta la imagen aquí</div>
 
       <FileUploader
         handleChange={handleSeleccion}
@@ -68,7 +44,7 @@ export default function CampoDragDrop({ alSeleccionarImagen, archivoSeleccionado
         classes="dd-drop-uploader"
         disabled={isOffline}
       >
-        <div ref={dropTargetRef} className={`dd-drop-target ${estaArrastrando && !isOffline ? 'dragover' : ''}`}>
+        <div className={`dd-drop-target ${estaArrastrando && !isOffline ? 'dragover' : ''}`}>
           {estaArrastrando && !isOffline ? <span className="drop-zone-message"></span> : null}
         </div>
       </FileUploader>

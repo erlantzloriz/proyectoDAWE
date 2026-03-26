@@ -9,7 +9,7 @@ const ETIQUETAS_EXTRA = {
   JuegoMesa: 'Jugadores',
 };
 
-export default function FormularioProducto({ onRegistrar, isOffline }) {
+export default function FormularioNuevosProductos({ onRegistrar, isOffline }) {
   const [tipo, setTipo] = useState('');
   const [nombre, setNombre] = useState('');
   const [precio, setPrecio] = useState('');

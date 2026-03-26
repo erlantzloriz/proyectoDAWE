@@ -26,7 +26,7 @@ export default function EscaparateProductos({
           <TarjetaProducto
             key={p.id}
             producto={p}
-            cantidadEnCarrito={carrito[p.id]?.cantidad || 0}
+            cantidadEnCarrito={carrito.find(item => String(item.id) === String(p.id))?.cantidad || 0}
             onAgregarCarrito={onAgregarCarrito}
             onVerDetalles={setProductoDetalle}
           />

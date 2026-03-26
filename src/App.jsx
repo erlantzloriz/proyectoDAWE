@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { listaProductos as productosIniciales, registrarNuevoProducto, MAX_COPIAS, guardarEnCarrito, borrarDelCarrito, cargarCarrito } from './tienda.js';
 import TarjetaProducto from './componentes/TarjetaProducto.jsx';
 import Paginacion from './componentes/Paginacion.jsx';
-import FormularioProducto from './componentes/FormularioProducto.jsx';
+import FormularioNuevosProductos from './componentes/FormularioNuevosProductos.jsx';
 import Carrito from './componentes/Carrito.jsx';
 import DetallesProducto from './componentes/DetallesProducto.jsx';
 import PWABadge from './PWABadge.jsx';
@@ -58,28 +58,51 @@ function App() {
     if (!p) return;
 
     setCarrito(prevCarrito => {
-      const nuevoCarrito = { ...prevCarrito };
-      
-      if (nuevoCarrito[id]) {
-        if (nuevoCarrito[id].cantidad < MAX_COPIAS) {
-          nuevoCarrito[id].cantidad++;
-          guardarEnCarrito(id, nuevoCarrito[id]); // <--- GUARDAR EN LOCALSTORAGE
+      const idx = prevCarrito.findIndex(item => String(item.id) === String(id));
+
+      if (idx !== -1) {
+        const itemActual = prevCarrito[idx];
+
+        if (itemActual.cantidad < MAX_COPIAS) {
+          const nuevoCarrito = [...prevCarrito];
+          const actualizado = { ...itemActual, cantidad: itemActual.cantidad + 1 };
+          nuevoCarrito[idx] = actualizado;
+          guardarEnCarrito(id, {
+            nombre: actualizado.nombre,
+            precio: actualizado.precio,
+            imagen: actualizado.imagen,
+            cantidad: actualizado.cantidad,
+          });
+          return nuevoCarrito;
         } else {
           setMensajeMax(`No puedes añadir más de ${MAX_COPIAS} unidades del mismo producto.`);
           setTimeout(() => setMensajeMax(''), 3000);
         }
       } else {
-        nuevoCarrito[id] = { nombre: p.nombre, precio: p.precio, imagen: p.imagen, cantidad: 1 };
-        guardarEnCarrito(id, nuevoCarrito[id]); // <--- GUARDAR EN LOCALSTORAGE
+        const nuevoItem = {
+          id,
+          nombre: p.nombre,
+          precio: p.precio,
+          imagen: p.imagen,
+          cantidad: 1,
+        };
+        const nuevoCarrito = [...prevCarrito, nuevoItem];
+        guardarEnCarrito(id, {
+          nombre: nuevoItem.nombre,
+          precio: nuevoItem.precio,
+          imagen: nuevoItem.imagen,
+          cantidad: nuevoItem.cantidad,
+        });
+        return nuevoCarrito;
       }
-      return nuevoCarrito;
+
+      return prevCarrito;
     });
   };
 
   const handleEliminarDeCarrito = (id) => {
     setCarrito(prevCarrito => {
-      const nuevoCarrito = { ...prevCarrito };
-      delete nuevoCarrito[id];
+      const nuevoCarrito = prevCarrito.filter(item => String(item.id) !== String(id));
       borrarDelCarrito(id); // <--- BORRAR DE LOCALSTORAGE
       return nuevoCarrito;
     });
@@ -87,29 +110,46 @@ function App() {
 
   const handleCambiarCantidad = (id, cantidad) => {
     setCarrito(prevCarrito => {
-      const nuevoCarrito = { ...prevCarrito };
-      
+      const idx = prevCarrito.findIndex(item => String(item.id) === String(id));
+      if (idx === -1) return prevCarrito;
+
       if (isNaN(cantidad) || cantidad <= 0) {
-        delete nuevoCarrito[id];
+        const nuevoCarrito = prevCarrito.filter(item => String(item.id) !== String(id));
         borrarDelCarrito(id); // <--- BORRAR DE LOCALSTORAGE
+        return nuevoCarrito;
       } else if (cantidad > MAX_COPIAS) {
-        nuevoCarrito[id].cantidad = MAX_COPIAS;
-        guardarEnCarrito(id, nuevoCarrito[id]); // <--- GUARDAR EN LOCALSTORAGE
+        const nuevoCarrito = [...prevCarrito];
+        const actualizado = { ...nuevoCarrito[idx], cantidad: MAX_COPIAS };
+        nuevoCarrito[idx] = actualizado;
+        guardarEnCarrito(id, {
+          nombre: actualizado.nombre,
+          precio: actualizado.precio,
+          imagen: actualizado.imagen,
+          cantidad: actualizado.cantidad,
+        });
         setMensajeMax(`No puedes añadir más de ${MAX_COPIAS} unidades del mismo producto.`);
         setTimeout(() => setMensajeMax(''), 3000);
+        return nuevoCarrito;
       } else {
-        nuevoCarrito[id].cantidad = cantidad;
-        guardarEnCarrito(id, nuevoCarrito[id]); // <--- GUARDAR EN LOCALSTORAGE
+        const nuevoCarrito = [...prevCarrito];
+        const actualizado = { ...nuevoCarrito[idx], cantidad };
+        nuevoCarrito[idx] = actualizado;
+        guardarEnCarrito(id, {
+          nombre: actualizado.nombre,
+          precio: actualizado.precio,
+          imagen: actualizado.imagen,
+          cantidad: actualizado.cantidad,
+        });
+        return nuevoCarrito;
       }
-      return nuevoCarrito;
     });
   };
 
   const handleVaciarCarrito = () => {
     if (window.confirm('¿Estás seguro de que quieres vaciar el carrito?')) {
       // Borramos cada item del localStorage
-      Object.keys(carrito).forEach(id => borrarDelCarrito(id));
-      setCarrito({});
+      carrito.forEach(item => borrarDelCarrito(item.id));
+      setCarrito([]);
     }
   };
 
@@ -200,7 +240,7 @@ function App() {
 
         <aside className="bg-light">
           <h3 className="border-bottom pb-2">Añadir Producto</h3>
-          <FormularioProducto onRegistrar={handleNuevoProducto} isOffline={isOffline} />
+          <FormularioNuevosProductos onRegistrar={handleNuevoProducto} isOffline={isOffline} />
         </aside>
       </div>
 
