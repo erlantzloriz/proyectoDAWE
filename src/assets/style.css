@@ -161,6 +161,58 @@ aside .btn {
     justify-content: center;
 }
 
+.drop-zone-filelike {
+    padding: 0;
+    border: 1px dashed #ced4da;
+    border-radius: 0;
+    background: #f8f9fa;
+    display: block;
+    min-height: 96px;
+    color: #495057;
+}
+
+.drop-file-head {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    border-bottom: 1px solid #ced4da;
+    background: #f1f3f5;
+}
+
+.drop-file-button {
+    display: inline-block;
+    padding: 9px 12px;
+    border-right: 1px solid #ced4da;
+    background: #e9ecef;
+    font-size: 0.95rem;
+    color: #212529;
+    white-space: nowrap;
+}
+
+.drop-file-name {
+    padding: 9px 12px;
+    font-size: 0.92rem;
+    color: #495057;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.drop-file-help {
+    text-align: center;
+    padding: 10px 10px 6px;
+    font-size: 0.95rem;
+    color: #1f3a4d;
+}
+
+.drop-file-target {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px 12px;
+}
+
 .drop-uploader {
     width: 100% !important;
     display: block;
@@ -179,6 +231,19 @@ aside .btn {
     cursor: not-allowed;
 }
 
+.drop-zone-filelike.is-disabled .drop-file-head {
+    background: #e9ecef;
+}
+
+.drop-zone-filelike.is-disabled .drop-file-button {
+    background: #dee2e6;
+    color: #6c757d;
+}
+
+.drop-zone-filelike.is-disabled .drop-file-target {
+    background: #e9ecef;
+}
+
 .drop-zone-message {
     font-weight: 700;
     color: #1b4332;
@@ -186,12 +251,101 @@ aside .btn {
 .drop-zone.dragover {
     border-color: #2d6a4f;
     border-style: solid;
-    background: linear-gradient(135deg, rgba(45, 106, 79, 0.2) 0%, rgba(27, 67, 50, 0.2) 100%);
+    background: #eef6f1;
     color: #2d6a4f;
 }
 
 .drop-zone .text-danger {
     color: #dc3545 !important;
+}
+
+.dd-field {
+    width: 100%;
+}
+
+.dd-row {
+    display: flex;
+    width: 100%;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.dd-select-uploader {
+    display: block;
+    width: auto;
+}
+
+.dd-select-uploader label {
+    display: block;
+}
+
+.dd-select-btn {
+    border: 0;
+    border-right: 1px solid #ced4da;
+    background: #e9ecef;
+    color: #212529;
+    font-size: 0.95rem;
+    padding: 9px 12px;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.dd-select-btn:disabled {
+    cursor: not-allowed;
+    color: #6c757d;
+    background: #dee2e6;
+}
+
+.dd-file-name {
+    flex: 1;
+    min-width: 0;
+    padding: 9px 12px;
+    color: #495057;
+    font-size: 0.92rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dd-help {
+    text-align: center;
+    padding: 10px 10px 6px;
+    font-size: 0.95rem;
+    color: #1f3a4d;
+}
+
+.dd-drop-uploader {
+    display: block;
+    width: 100% !important;
+}
+
+.dd-drop-uploader label,
+.dd-drop-uploader > div {
+    width: 100% !important;
+    display: block;
+    cursor: default !important;
+}
+
+.dd-drop-target {
+    min-height: 56px;
+    border: 1px dashed #ced4da;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+}
+
+.dd-drop-target.dragover {
+    border-color: #2d6a4f;
+    background: #eef6f1;
+}
+
+.dd-field.is-disabled .dd-row,
+.dd-field.is-disabled .dd-drop-target {
+    background: #e9ecef;
 }
 
 .drop-zone .text-success {
