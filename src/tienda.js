@@ -100,3 +100,24 @@ export function registrarNuevoProducto(datos) {
     listaProductos.push(nuevo);
     return nuevo;
 }
+
+export function guardarEnFavoritos(id, productoFavorito) {
+    localStorage.setItem(`favorito_${id}`, JSON.stringify(productoFavorito));
+}
+
+export function borrarDeFavoritos(id) {
+    localStorage.removeItem(`favorito_${id}`);
+}
+
+export function cargarFavoritos() {
+    const favoritosCargados = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        const clave = localStorage.key(i);
+        if (clave && clave.startsWith('favorito_')) {
+            const id = clave.replace('favorito_', '');
+            const producto = JSON.parse(localStorage.getItem(clave));
+            favoritosCargados.push({ id, ...producto });
+        }
+    }
+    return favoritosCargados;
+}

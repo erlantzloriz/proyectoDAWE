@@ -1,5 +1,17 @@
 import { useState, useEffect } from 'react';
-import { listaProductos as productosIniciales, registrarNuevoProducto, MAX_COPIAS, guardarEnCarrito, borrarDelCarrito, cargarCarrito } from './tienda.js';
+
+import { 
+  listaProductos as productosIniciales, 
+  registrarNuevoProducto, 
+  MAX_COPIAS, 
+  guardarEnCarrito, 
+  borrarDelCarrito, 
+  cargarCarrito, 
+  guardarEnFavoritos, 
+  borrarDeFavoritos, 
+  cargarFavoritos 
+} from './tienda.js';
+
 import TarjetaProducto from './componentes/TarjetaProducto.jsx';
 import Paginacion from './componentes/Paginacion.jsx';
 import FormularioNuevosProductos from './componentes/FormularioNuevosProductos.jsx';
@@ -12,24 +24,25 @@ import Cabecera from './componentes/Cabecera.jsx';
 import MenuNavegacion from './componentes/MenuNavegacion.jsx';
 import EscaparateProductos from './componentes/EscaparateProductos.jsx';
 import Pie from './componentes/Pie.jsx';
-
+import Favoritos from './componentes/Favoritos.jsx';
 
 const PRODUCTOS_POR_PAGINA = 6;
 
 function App() {
-  // 1. Añadimos los estados correctos para manejar la reactividad
+  // --- 1. ESTADOS (Siempre al principio) ---
   const [productos, setProductos] = useState(productosIniciales);
-  // Inicializamos el estado leyendo el localStorage
   const [carrito, setCarrito] = useState(() => cargarCarrito());
+  const [favoritos, setFavoritos] = useState(() => cargarFavoritos()); // Movido aquí arriba
+  const [favoritosAbiertos, setFavoritosAbiertos] = useState(false); // Movido aquí arriba
   
-  // 2. Mantenemos el resto de tus estados (¡quitando forceUpdate!)
   const [paginaActual, setPaginaActual] = useState(1);
   const [busqueda, setBusqueda] = useState('');
   const [carritoAbierto, setCarritoAbierto] = useState(false);
   const [productoDetalle, setProductoDetalle] = useState(null);
   const [mensajeMax, setMensajeMax] = useState('');
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
-  // 3. Importante: ahora filtramos sobre la variable de estado 'productos', no la global
+  // --- 2. LÓGICA DE FILTRADO ---
   const productosFiltrados = productos.filter(p =>
     p.nombre.toLowerCase().includes(busqueda.toLowerCase())
   );
@@ -37,17 +50,15 @@ function App() {
   const inicio = (paginaActual - 1) * PRODUCTOS_POR_PAGINA;
   const productosEnPagina = productosFiltrados.slice(inicio, inicio + PRODUCTOS_POR_PAGINA);
   const totalPaginas = Math.ceil(productosFiltrados.length / PRODUCTOS_POR_PAGINA);
+
+  // --- 3. MANEJADORES DE EVENTOS ---
   const handleBusqueda = (e) => {
     setBusqueda(e.target.value);
     setPaginaActual(1);
   };
 
   const handleNuevoProducto = (datos) => {
-    const payload = {
-      ...datos,
-      precio: Number.parseFloat(datos.precio),
-    };
-
+    const payload = { ...datos, precio: Number.parseFloat(datos.precio) };
     const nuevo = registrarNuevoProducto(payload);
     setProductos([...productosIniciales]);
     setProductoDetalle(nuevo);
@@ -59,168 +70,89 @@ function App() {
 
     setCarrito(prevCarrito => {
       const idx = prevCarrito.findIndex(item => String(item.id) === String(id));
-
       if (idx !== -1) {
         const itemActual = prevCarrito[idx];
-
         if (itemActual.cantidad < MAX_COPIAS) {
           const nuevoCarrito = [...prevCarrito];
           const actualizado = { ...itemActual, cantidad: itemActual.cantidad + 1 };
           nuevoCarrito[idx] = actualizado;
-          guardarEnCarrito(id, {
-            nombre: actualizado.nombre,
-            precio: actualizado.precio,
-            imagen: actualizado.imagen,
-            cantidad: actualizado.cantidad,
-          });
+          guardarEnCarrito(id, actualizado);
           return nuevoCarrito;
         } else {
-          setMensajeMax(`No puedes añadir más de ${MAX_COPIAS} unidades del mismo producto.`);
+          setMensajeMax(`No puedes añadir más de ${MAX_COPIAS} unidades.`);
           setTimeout(() => setMensajeMax(''), 3000);
         }
       } else {
-        const nuevoItem = {
-          id,
-          nombre: p.nombre,
-          precio: p.precio,
-          imagen: p.imagen,
-          cantidad: 1,
-        };
-        const nuevoCarrito = [...prevCarrito, nuevoItem];
-        guardarEnCarrito(id, {
-          nombre: nuevoItem.nombre,
-          precio: nuevoItem.precio,
-          imagen: nuevoItem.imagen,
-          cantidad: nuevoItem.cantidad,
-        });
-        return nuevoCarrito;
+        const nuevoItem = { id, nombre: p.nombre, precio: p.precio, imagen: p.imagen, cantidad: 1 };
+        guardarEnCarrito(id, nuevoItem);
+        return [...prevCarrito, nuevoItem];
       }
-
       return prevCarrito;
+    });
+  };
+
+  const handleAlternarFavorito = (producto) => {
+    setFavoritos(prevFavoritos => {
+      const existe = prevFavoritos.find(item => String(item.id) === String(producto.id));
+      if (existe) {
+        const nuevosFavs = prevFavoritos.filter(item => String(item.id) !== String(producto.id));
+        borrarDeFavoritos(producto.id);
+        return nuevosFavs;
+      } else {
+        const nuevoFav = { id: producto.id, nombre: producto.nombre, precio: producto.precio, imagen: producto.imagen };
+        guardarEnFavoritos(producto.id, nuevoFav);
+        return [...prevFavoritos, nuevoFav];
+      }
     });
   };
 
   const handleEliminarDeCarrito = (id) => {
     setCarrito(prevCarrito => {
       const nuevoCarrito = prevCarrito.filter(item => String(item.id) !== String(id));
-      borrarDelCarrito(id); // <--- BORRAR DE LOCALSTORAGE
+      borrarDelCarrito(id);
       return nuevoCarrito;
     });
   };
 
-  const handleCambiarCantidad = (id, cantidad) => {
-    setCarrito(prevCarrito => {
-      const idx = prevCarrito.findIndex(item => String(item.id) === String(id));
-      if (idx === -1) return prevCarrito;
-
-      if (isNaN(cantidad) || cantidad <= 0) {
-        const nuevoCarrito = prevCarrito.filter(item => String(item.id) !== String(id));
-        borrarDelCarrito(id); // <--- BORRAR DE LOCALSTORAGE
-        return nuevoCarrito;
-      } else if (cantidad > MAX_COPIAS) {
-        const nuevoCarrito = [...prevCarrito];
-        const actualizado = { ...nuevoCarrito[idx], cantidad: MAX_COPIAS };
-        nuevoCarrito[idx] = actualizado;
-        guardarEnCarrito(id, {
-          nombre: actualizado.nombre,
-          precio: actualizado.precio,
-          imagen: actualizado.imagen,
-          cantidad: actualizado.cantidad,
-        });
-        setMensajeMax(`No puedes añadir más de ${MAX_COPIAS} unidades del mismo producto.`);
-        setTimeout(() => setMensajeMax(''), 3000);
-        return nuevoCarrito;
-      } else {
-        const nuevoCarrito = [...prevCarrito];
-        const actualizado = { ...nuevoCarrito[idx], cantidad };
-        nuevoCarrito[idx] = actualizado;
-        guardarEnCarrito(id, {
-          nombre: actualizado.nombre,
-          precio: actualizado.precio,
-          imagen: actualizado.imagen,
-          cantidad: actualizado.cantidad,
-        });
-        return nuevoCarrito;
-      }
-    });
-  };
-
   const handleVaciarCarrito = () => {
-    if (window.confirm('¿Estás seguro de que quieres vaciar el carrito?')) {
-      // Borramos cada item del localStorage
+    if (window.confirm('¿Vaciar carrito?')) {
       carrito.forEach(item => borrarDelCarrito(item.id));
       setCarrito([]);
     }
   };
 
-  // Nuevo estado para controlar si hay internet
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
-
+  // --- 4. EFECTOS (Conectividad) ---
   useEffect(() => {
-    const updateByNavigator = () => setIsOffline(!navigator.onLine);
-
-    const internetCheckUrl = 'https://www.gstatic.com/generate_204';
-
     const checkConnectivity = async () => {
-      if (!navigator.onLine) {
-        setIsOffline(true);
-        return;
-      }
-
+      if (!navigator.onLine) { setIsOffline(true); return; }
       try {
-        const controller = new AbortController();
-        const timeoutId = window.setTimeout(() => controller.abort(), 3500);
-
-        try {
-          await fetch(`${internetCheckUrl}?t=${Date.now()}`, {
-            method: 'GET',
-            mode: 'no-cors',
-            cache: 'no-store',
-            signal: controller.signal,
-          });
-
-          setIsOffline(false);
-        } catch {
-          setIsOffline(true);
-        } finally {
-          window.clearTimeout(timeoutId);
-        }
-      } catch {
-        setIsOffline(true);
-      }
+        await fetch('https://www.gstatic.com/generate_204', { mode: 'no-cors', cache: 'no-store' });
+        setIsOffline(false);
+      } catch { setIsOffline(true); }
     };
 
-    const handleOnline = () => {
-      updateByNavigator();
-      checkConnectivity();
-    };
-
-    const handleOffline = () => {
-      updateByNavigator();
-    };
-
-    updateByNavigator();
-    checkConnectivity();
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    document.addEventListener('visibilitychange', checkConnectivity);
-
-    const intervalId = window.setInterval(checkConnectivity, 10000);
+    window.addEventListener('online', checkConnectivity);
+    window.addEventListener('offline', () => setIsOffline(true));
+    const intervalId = setInterval(checkConnectivity, 10000);
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-      document.removeEventListener('visibilitychange', checkConnectivity);
-      window.clearInterval(intervalId);
+      window.removeEventListener('online', checkConnectivity);
+      window.removeEventListener('offline', () => setIsOffline(true));
+      clearInterval(intervalId);
     };
   }, []);
 
+  // --- 5. RENDER ---
   return (
     <div className="container container-principal shadow-lg">
       <Cabecera titulo="LA TIENDA DE DAWEWIWOWU" />
       
-      <MenuNavegacion onAbrirCarrito={() => setCarritoAbierto(true)} isOffline={isOffline} />
+      {/* Un solo menú de navegación con todas las funciones */}
+      <MenuNavegacion 
+        onAbrirCarrito={() => setCarritoAbierto(true)} 
+        onAbrirFavoritos={() => setFavoritosAbiertos(true)} 
+        isOffline={isOffline} 
+      />
 
       <div className="layout-tienda flex-grow-1">
         <EscaparateProductos
@@ -236,9 +168,11 @@ function App() {
           totalProductos={productosFiltrados.length}
           productosPorPagina={PRODUCTOS_POR_PAGINA}
           onCambiarPagina={setPaginaActual}
+          favoritos={favoritos}
+          onAlternarFavorito={handleAlternarFavorito}
         />
 
-        <aside className="bg-light">
+        <aside className="bg-light p-3">
           <h3 className="border-bottom pb-2">Añadir Producto</h3>
           <FormularioNuevosProductos onRegistrar={handleNuevoProducto} isOffline={isOffline} />
         </aside>
@@ -246,9 +180,8 @@ function App() {
 
       <Pie contenido="&copy; Proyecto DAWE." />
 
-      {/* Alertas y Carrito (se quedan a nivel global) */}
       {mensajeMax && !carritoAbierto && (
-        <div className="alert alert-warning position-fixed bottom-0 end-0 m-3 shadow" role="alert" style={{ zIndex: 1060 }}>
+        <div className="alert alert-warning position-fixed bottom-0 end-0 m-3 shadow" style={{ zIndex: 1060 }}>
           {mensajeMax}
         </div>
       )}
@@ -258,12 +191,17 @@ function App() {
           carrito={carrito}
           onCerrar={() => setCarritoAbierto(false)}
           onEliminar={handleEliminarDeCarrito}
-          onCambiarCantidad={handleCambiarCantidad}
           onVaciar={handleVaciarCarrito}
-          mensajeMax={mensajeMax}
         />
       )}
 
+      {favoritosAbiertos && (
+        <Favoritos
+          favoritos={favoritos}
+          onCerrar={() => setFavoritosAbiertos(false)}
+          onEliminar={(id) => handleAlternarFavorito({ id })}
+        />
+      )}
       <PWABadge />
     </div>
   );
