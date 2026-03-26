@@ -15,7 +15,9 @@ export default function EscaparateProductos({
   totalPaginas,
   totalProductos,
   productosPorPagina,
-  onCambiarPagina
+  onCambiarPagina,
+  favoritos,        // <--- Recibimos favoritos
+  onAlternarFavorito // <--- Recibimos la función
 }) {
   return (
     <main className="p-4">
@@ -29,6 +31,8 @@ export default function EscaparateProductos({
             cantidadEnCarrito={carrito.find(item => String(item.id) === String(p.id))?.cantidad || 0}
             onAgregarCarrito={onAgregarCarrito}
             onVerDetalles={setProductoDetalle}
+            favoritos={favoritos}        // <--- Pasamos favoritos a la tarjeta
+            onAlternarFavorito={onAlternarFavorito} // <--- Pasamos la función
           />
         ))}
       </div>
@@ -41,7 +45,6 @@ export default function EscaparateProductos({
         onCambiarPagina={onCambiarPagina}
       />
 
-      {/* El modal de detalles se renderiza aquí dentro según el enunciado */}
       {productoDetalle && (
         <DetallesProducto
           producto={productoDetalle}
