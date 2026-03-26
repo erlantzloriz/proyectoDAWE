@@ -1,8 +1,7 @@
 import { truncarTexto, resolverImagen } from '../utils.js';
 
 export default function Carrito({ carrito, onCerrar, onEliminar, onCambiarCantidad, onVaciar, mensajeMax }) {
-  const entries = Object.entries(carrito);
-  const total = entries.reduce((sum, [, item]) => sum + item.precio * item.cantidad, 0);
+  const total = carrito.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
 
   return (
     <>
@@ -18,14 +17,14 @@ export default function Carrito({ carrito, onCerrar, onEliminar, onCambiarCantid
               {mensajeMax}
             </div>
           )}
-          {entries.length === 0 ? (
+          {carrito.length === 0 ? (
             <p className="text-muted text-center mt-4">El carrito está vacío.</p>
           ) : (
             <>
-              {entries.map(([id, item]) => {
+              {carrito.map((item) => {
                 const subtotal = item.precio * item.cantidad;
                 return (
-                  <div key={id} className="producto-carrito mb-3 pb-3 border-bottom">
+                  <div key={item.id} className="producto-carrito mb-3 pb-3 border-bottom">
                     <div className="d-flex gap-2 align-items-start">
                       <img
                         src={resolverImagen(item.imagen)}
@@ -44,14 +43,14 @@ export default function Carrito({ carrito, onCerrar, onEliminar, onCambiarCantid
                             value={item.cantidad}
                             className="cantidad-carrito form-control form-control-sm d-inline-block"
                             style={{ width: '60px' }}
-                            onChange={(e) => onCambiarCantidad(id, parseInt(e.target.value))}
+                            onChange={(e) => onCambiarCantidad(item.id, parseInt(e.target.value))}
                           />
                           {' '}= <strong>{subtotal.toFixed(2)}€</strong>
                         </div>
                       </div>
                       <button
                         className="btn btn-sm btn-danger"
-                        onClick={() => onEliminar(id)}
+                        onClick={() => onEliminar(item.id)}
                         title="Eliminar"
                       >
                         ✕
