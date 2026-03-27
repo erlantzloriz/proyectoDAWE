@@ -1,0 +1,7 @@
+Tareas
+
+Andoni: valoraciones (implantación extra) y arreglar errores de primera iteración y segunda iteración.
+
+Jon: requisitos de segunda iteración (componentes, modo sin conexión, campos...).
+
+Erlantz: lista de favoritos y guardado en cache (implantación extra).
