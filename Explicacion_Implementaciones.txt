@@ -1,0 +1,20 @@
+1. Sistema de Valoraciones y Reseñas de Productos
+Descripción general: Se ha implementado una funcionalidad interactiva que permite a los usuarios dejar sus opiniones sobre los diferentes artículos del catálogo, mejorando la experiencia de usuario y la retroalimentación en la tienda.
+
+Detalles técnicos de la implementación:
+
+Gestión del estado en React: Se ha integrado un sistema para capturar y mostrar dinámicamente las valoraciones dentro del componente de detalles del producto.
+
+Interactividad: Los usuarios pueden interactuar con la interfaz para enviar su opinión, actualizando el estado de la aplicación en tiempo real sin necesidad de recargar la página, manteniendo la filosofía de una Single Page Application (SPA).
+
+
+2. Lista de Deseos (Favoritos) con Persistencia Local
+Descripción general: Se ha añadido un sistema de "Favoritos" que permite a los usuarios curar una lista personalizada con los productos que más les interesan, accesible en todo momento mediante un menú dedicado.
+
+Detalles técnicos de la implementación:
+
+Interfaz de Usuario (UI): Se ha modificado el componente de las tarjetas de producto para incluir un icono interactivo (una estrella). Al hacer clic en él, el estado del icono cambia para reflejar si el producto está guardado o no.
+
+Accesibilidad: Se ha creado un nuevo componente o menú lateral activado por un botón específico de "Favoritos", donde se renderiza la lista de los productos seleccionados.
+
+Persistencia de datos (localStorage): Para garantizar una buena experiencia de usuario, la lista de favoritos no es volátil. Se ha implementado una lógica de almacenamiento persistente utilizando la API de localStorage del navegador. Esto asegura que la selección del usuario sobreviva a recargas de la página o al cierre del navegador, complementando perfectamente el funcionamiento offline de la PWA.
