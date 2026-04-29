@@ -1,4 +1,5 @@
 import { obtenerAtributoExtra, resolverImagen } from '../utils.js';
+import Valoraciones from './Valoraciones.jsx';
 
 export default function DetallesProducto({ producto, onCerrar }) {
   const atributoExtra = obtenerAtributoExtra(producto);
@@ -25,6 +26,8 @@ export default function DetallesProducto({ producto, onCerrar }) {
           )}
           <h5 className="mb-2">Descripción:</h5>
           <p>{producto.descripcion}</p>
+
+          <Valoraciones productoId={producto.id} />
         </div>
       </div>
     </div>
