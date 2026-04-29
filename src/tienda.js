@@ -121,3 +121,27 @@ export function cargarFavoritos() {
     }
     return favoritosCargados;
 }
+
+// Funciones para valoraciones
+export function guardarValoracion(idProducto, valoracion) {
+    // valoracion debe tener: { puntuacion, comentario, fecha }
+    localStorage.setItem(`valoracion_${idProducto}`, JSON.stringify(valoracion));
+}
+
+export function cargarValoracion(idProducto) {
+    const valoracion = localStorage.getItem(`valoracion_${idProducto}`);
+    return valoracion ? JSON.parse(valoracion) : null;
+}
+
+export function cargarTodasValoraciones() {
+    const valoraciones = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        const clave = localStorage.key(i);
+        if (clave && clave.startsWith('valoracion_')) {
+            const idProducto = clave.replace('valoracion_', '');
+            const valoracion = JSON.parse(localStorage.getItem(clave));
+            valoraciones.push({ idProducto, ...valoracion });
+        }
+    }
+    return valoraciones;
+}

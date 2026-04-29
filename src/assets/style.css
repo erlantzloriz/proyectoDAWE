@@ -369,7 +369,7 @@ aside .btn {
     background: white;
     width: 85%;
     max-width: 900px;
-    height: 70vh;
+    max-height: 85vh;
     border-radius: 12px;
     overflow: hidden;
     position: relative;
@@ -504,4 +504,34 @@ footer {
         flex-direction: column;
         height: 90vh;
     }
+}
+
+/* Estilos para Valoraciones */
+.valoraciones-section {
+    margin-top: 20px;
+}
+
+.valoracion-existente {
+    background-color: #f8f9fa;
+    border-left: 4px solid #ffc107;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.formulario-valoracion {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.formulario-valoracion textarea {
+    font-family: 'Roboto', sans-serif;
+    border: 1px solid #dee2e6;
+    padding: 10px;
+}
+
+.formulario-valoracion .form-range {
+    cursor: pointer;
 }

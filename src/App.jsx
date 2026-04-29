@@ -121,6 +121,34 @@ function App() {
     }
   };
 
+  const handleCambiarCantidad = (id, nuevaCantidad) => {
+    if (nuevaCantidad < 0) return;
+    
+    // Si la cantidad es 0, eliminar el producto del carrito
+    if (nuevaCantidad === 0) {
+      handleEliminarDeCarrito(id);
+      return;
+    }
+
+    if (nuevaCantidad > MAX_COPIAS) {
+      setMensajeMax(`No puedes añadir más de ${MAX_COPIAS} unidades.`);
+      setTimeout(() => setMensajeMax(''), 3000);
+      return;
+    }
+
+    setCarrito(prevCarrito => {
+      const nuevoCarrito = prevCarrito.map(item => {
+        if (String(item.id) === String(id)) {
+          const actualizado = { ...item, cantidad: nuevaCantidad };
+          guardarEnCarrito(id, actualizado);
+          return actualizado;
+        }
+        return item;
+      });
+      return nuevoCarrito;
+    });
+  };
+
   // --- 4. EFECTOS (Conectividad) ---
   useEffect(() => {
     const checkConnectivity = async () => {
@@ -191,7 +219,9 @@ function App() {
           carrito={carrito}
           onCerrar={() => setCarritoAbierto(false)}
           onEliminar={handleEliminarDeCarrito}
+          onCambiarCantidad={handleCambiarCantidad}
           onVaciar={handleVaciarCarrito}
+          mensajeMax={mensajeMax}
         />
       )}
 
