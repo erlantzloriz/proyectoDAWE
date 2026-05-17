@@ -25,10 +25,14 @@ import MenuNavegacion from './componentes/MenuNavegacion.jsx';
 import EscaparateProductos from './componentes/EscaparateProductos.jsx';
 import Pie from './componentes/Pie.jsx';
 import Favoritos from './componentes/Favoritos.jsx';
+import PanelAutenticacion from './componentes/PanelAutenticacion.jsx';
 
 const PRODUCTOS_POR_PAGINA = 6;
 
 function App() {
+
+  const [usuario, setUsuario] = useState(null); // Contendrá el objeto del usuario {nombre, email, rol, etc.}
+  const [visitas, setVisitas] = useState(1);     // Contador provisto por express-session
   // --- 1. ESTADOS (Siempre al principio) ---
   const [productos, setProductos] = useState(productosIniciales);
   const [carrito, setCarrito] = useState(() => cargarCarrito());
@@ -52,6 +56,42 @@ function App() {
   const totalPaginas = Math.ceil(productosFiltrados.length / PRODUCTOS_POR_PAGINA);
 
   // --- 3. MANEJADORES DE EVENTOS ---
+
+  // --- EFECTO PARA RESTAURAR SESIÓN CON EXPRESS AL REFRESCAR ---
+  useEffect(() => {
+    const verificarSesionActiva = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/usuarios/perfil', {
+          credentials: 'include' // Obligatorio para pasar las cookies de sesión
+        });
+        if (res.ok) {
+          const datos = await res.json();
+          if (datos.autenticado) {
+            setUsuario(datos.usuario);
+            setVisitas(datos.visitas); // Refleja el contador incrementado automáticamente por el servidor 
+          }
+        }
+      } catch (error) {
+        console.error("Error al recuperar la sesión del backend:", error);
+      }
+    };
+    
+    if (!isOffline) {
+      verificarSesionActiva();
+    }
+  }, [isOffline]); // Se ejecuta al arrancar y si recuperamos la conexión
+
+  // --- MANEJADORES DE LOGIN / LOGOUT ---
+  const handleLoginExitoso = (datosUsuario, numeroVisitas) => {
+    setUsuario(datosUsuario);
+    setVisitas(numeroVisitas);
+  };
+
+  const handleLogoutExitoso = () => {
+    setUsuario(null);
+    setVisitas(1);
+  };
+
   const handleBusqueda = (e) => {
     setBusqueda(e.target.value);
     setPaginaActual(1);
@@ -200,9 +240,14 @@ function App() {
           onAlternarFavorito={handleAlternarFavorito}
         />
 
-        <aside className="bg-light p-3">
-          <h3 className="border-bottom pb-2">Añadir Producto</h3>
-          <FormularioNuevosProductos onRegistrar={handleNuevoProducto} isOffline={isOffline} />
+        <aside className="bg-light p-3 border-start">
+          <PanelAutenticacion 
+            usuarioLogueado={usuario}
+            visitas={visitas}
+            onLoginExitoso={handleLoginExitoso}
+            onLogoutExitoso={handleLogoutExitoso}
+            isOffline={isOffline}
+          />
         </aside>
       </div>
 
