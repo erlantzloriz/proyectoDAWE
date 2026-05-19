@@ -1,8 +1,8 @@
+// src/App.jsx
+
 import { useState, useEffect } from 'react';
 
 import { 
-  listaProductos as productosIniciales, 
-  registrarNuevoProducto, 
   MAX_COPIAS, 
   guardarEnCarrito, 
   borrarDelCarrito, 
@@ -14,7 +14,6 @@ import {
 
 import TarjetaProducto from './componentes/TarjetaProducto.jsx';
 import Paginacion from './componentes/Paginacion.jsx';
-import FormularioNuevosProductos from './componentes/FormularioNuevosProductos.jsx';
 import Carrito from './componentes/Carrito.jsx';
 import DetallesProducto from './componentes/DetallesProducto.jsx';
 import PWABadge from './PWABadge.jsx';
@@ -27,220 +26,215 @@ import Pie from './componentes/Pie.jsx';
 import Favoritos from './componentes/Favoritos.jsx';
 import PanelAutenticacion from './componentes/PanelAutenticacion.jsx';
 
+// Marcadores de posición para las vistas que crearemos en los siguientes bloques
+const MiCuenta = () => <div className="p-4"><h3>Sección Mi Cuenta (Bloque 2)</h3></div>;
+const EditarBorrarProductos = () => <div className="p-4"><h3>Sección Administración Productos (Bloque 3)</h3></div>;
+const FormularioNuevosProductos = () => <div className="p-4"><h3>Sección Añadir Productos (Bloque 3)</h3></div>;
+
 const PRODUCTOS_POR_PAGINA = 6;
 
 function App() {
+  const [usuario, setUsuario] = useState(null); 
+  const [visitas, setVisitas] = useState(0);
+  const [productos, setProductos] = useState([]); // Ahora empieza vacío y se llena desde MongoDB
+  const [cargandoProductos, setCargandoProductos] = useState(true);
 
-  const [usuario, setUsuario] = useState(null); // Contendrá el objeto del usuario {nombre, email, rol, etc.}
-  const [visitas, setVisitas] = useState(1);     // Contador provisto por express-session
-  // --- 1. ESTADOS (Siempre al principio) ---
-  const [productos, setProductos] = useState(productosIniciales);
-  const [carrito, setCarrito] = useState(() => cargarCarrito());
-  const [favoritos, setFavoritos] = useState(() => cargarFavoritos()); // Movido aquí arriba
-  const [favoritosAbiertos, setFavoritosAbiertos] = useState(false); // Movido aquí arriba
-  
+  // Estado para la navegación interna
+  const [seccionActual, setSeccionActual] = useState('inicio'); 
+
+  // Estados de interfaz heredados
+  const [filtroTexto, setFiltroTexto] = useState('');
+  const [filtroTipo, setFiltroTipo] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
-  const [busqueda, setBusqueda] = useState('');
+  const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+  const [carrito, setCarrito] = useState([]);
+  const [favoritos, setFavoritos] = useState([]);
   const [carritoAbierto, setCarritoAbierto] = useState(false);
-  const [productoDetalle, setProductoDetalle] = useState(null);
+  const [favoritosAbiertos, setFavoritosAbiertos] = useState(false);
   const [mensajeMax, setMensajeMax] = useState('');
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
-  // --- 2. LÓGICA DE FILTRADO ---
-  const productosFiltrados = productos.filter(p =>
-    p.nombre.toLowerCase().includes(busqueda.toLowerCase())
-  );
-
-  const inicio = (paginaActual - 1) * PRODUCTOS_POR_PAGINA;
-  const productosEnPagina = productosFiltrados.slice(inicio, inicio + PRODUCTOS_POR_PAGINA);
-  const totalPaginas = Math.ceil(productosFiltrados.length / PRODUCTOS_POR_PAGINA);
-
-  // --- 3. MANEJADORES DE EVENTOS ---
-
-  // --- EFECTO PARA RESTAURAR SESIÓN CON EXPRESS AL REFRESCAR ---
-  useEffect(() => {
-    const verificarSesionActiva = async () => {
-      try {
-        const res = await fetch('http://localhost:5000/api/usuarios/perfil', {
-          credentials: 'include' // Obligatorio para pasar las cookies de sesión
-        });
-        if (res.ok) {
-          const datos = await res.json();
-          if (datos.autenticado) {
-            setUsuario(datos.usuario);
-            setVisitas(datos.visitas); // Refleja el contador incrementado automáticamente por el servidor 
-          }
-        }
-      } catch (error) {
-        console.error("Error al recuperar la sesión del backend:", error);
+  // 1. Efecto para cargar los productos desde la API de MongoDB
+  const cargarProductosDesdeAPI = async () => {
+    try {
+      setCargandoProductos(true);
+      const respuesta = await fetch('http://localhost:5000/api/productos');
+      if (respuesta.ok) {
+        const datos = await respuesta.json();
+        setProductos(datos);
       }
-    };
-    
-    if (!isOffline) {
-      verificarSesionActiva();
+    } catch (error) {
+      console.error("Error al conectar con la API de productos:", error);
+    } finally {
+      setCargandoProductos(false);
     }
-  }, [isOffline]); // Se ejecuta al arrancar y si recuperamos la conexión
+  };
 
-  // --- MANEJADORES DE LOGIN / LOGOUT ---
-  const handleLoginExitoso = (datosUsuario, numeroVisitas) => {
+  useEffect(() => {
+    cargarProductosDesdeAPI();
+
+    setCarrito(cargarCarrito());
+    setFavoritos(cargarFavoritos());
+
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Handlers para el Login y Logout
+  const handleLoginExitoso = (datosUsuario, numVisitas) => {
     setUsuario(datosUsuario);
-    setVisitas(numeroVisitas);
+    setVisitas(numVisitas);
   };
 
   const handleLogoutExitoso = () => {
     setUsuario(null);
-    setVisitas(1);
+    setVisitas(0);
+    setSeccionActual('inicio'); // Si se desloguea, vuelve a inicio por seguridad
   };
 
-  const handleBusqueda = (e) => {
-    setBusqueda(e.target.value);
-    setPaginaActual(1);
-  };
+  // Lógica de filtrado sobre el array dinámico de productos
+  const productosFiltrados = productos.filter(producto => {
+    const coincideTexto = producto.nombre.toLowerCase().includes(filtroTexto.toLowerCase()) ||
+                          producto.descripcion.toLowerCase().includes(filtroTexto.toLowerCase());
+    const coincideTipo = filtroTipo === '' || producto.tipo === filtroTipo;
+    return coincideTexto && coincideTipo;
+  });
 
-  const handleNuevoProducto = (datos) => {
-    const payload = { ...datos, precio: Number.parseFloat(datos.precio) };
-    const nuevo = registrarNuevoProducto(payload);
-    setProductos([...productosIniciales]);
-    setProductoDetalle(nuevo);
-  };
+  const totalPaginas = Math.ceil(productosFiltrados.length / PRODUCTOS_POR_PAGINA);
+  const indiceInicio = (paginaActual - 1) * PRODUCTOS_POR_PAGINA;
+  const productosPaginados = productosFiltrados.slice(indiceInicio, indiceInicio + PRODUCTOS_POR_PAGINA);
 
-  const handleAgregarCarrito = (id) => {
-    const p = productos.find(prod => prod.id === id);
-    if (!p) return;
+  // Funciones del carrito y favoritos heredadas
+  const handleAñadirAlCarrito = (producto) => {
+    const itemEnCarrito = carrito.find(item => item.id === producto._id || item.id === producto.id);
+    const cantidadActual = itemEnCarrito ? itemEnCarrito.cantidad : 0;
 
-    setCarrito(prevCarrito => {
-      const idx = prevCarrito.findIndex(item => String(item.id) === String(id));
-      if (idx !== -1) {
-        const itemActual = prevCarrito[idx];
-        if (itemActual.cantidad < MAX_COPIAS) {
-          const nuevoCarrito = [...prevCarrito];
-          const actualizado = { ...itemActual, cantidad: itemActual.cantidad + 1 };
-          nuevoCarrito[idx] = actualizado;
-          guardarEnCarrito(id, actualizado);
-          return nuevoCarrito;
-        } else {
-          setMensajeMax(`No puedes añadir más de ${MAX_COPIAS} unidades.`);
-          setTimeout(() => setMensajeMax(''), 3000);
-        }
-      } else {
-        const nuevoItem = { id, nombre: p.nombre, precio: p.precio, imagen: p.imagen, cantidad: 1 };
-        guardarEnCarrito(id, nuevoItem);
-        return [...prevCarrito, nuevoItem];
-      }
-      return prevCarrito;
-    });
-  };
-
-  const handleAlternarFavorito = (producto) => {
-    setFavoritos(prevFavoritos => {
-      const existe = prevFavoritos.find(item => String(item.id) === String(producto.id));
-      if (existe) {
-        const nuevosFavs = prevFavoritos.filter(item => String(item.id) !== String(producto.id));
-        borrarDeFavoritos(producto.id);
-        return nuevosFavs;
-      } else {
-        const nuevoFav = { id: producto.id, nombre: producto.nombre, precio: producto.precio, imagen: producto.imagen };
-        guardarEnFavoritos(producto.id, nuevoFav);
-        return [...prevFavoritos, nuevoFav];
-      }
-    });
-  };
-
-  const handleEliminarDeCarrito = (id) => {
-    setCarrito(prevCarrito => {
-      const nuevoCarrito = prevCarrito.filter(item => String(item.id) !== String(id));
-      borrarDelCarrito(id);
-      return nuevoCarrito;
-    });
-  };
-
-  const handleVaciarCarrito = () => {
-    if (window.confirm('¿Vaciar carrito?')) {
-      carrito.forEach(item => borrarDelCarrito(item.id));
-      setCarrito([]);
-    }
-  };
-
-  const handleCambiarCantidad = (id, nuevaCantidad) => {
-    if (nuevaCantidad < 0) return;
-    
-    // Si la cantidad es 0, eliminar el producto del carrito
-    if (nuevaCantidad === 0) {
-      handleEliminarDeCarrito(id);
-      return;
-    }
-
-    if (nuevaCantidad > MAX_COPIAS) {
-      setMensajeMax(`No puedes añadir más de ${MAX_COPIAS} unidades.`);
+    if (cantidadActual >= MAX_COPIAS) {
+      setMensajeMax(`No se pueden añadir más de ${MAX_COPIAS} copias de un producto.`);
       setTimeout(() => setMensajeMax(''), 3000);
       return;
     }
 
-    setCarrito(prevCarrito => {
-      const nuevoCarrito = prevCarrito.map(item => {
-        if (String(item.id) === String(id)) {
-          const actualizado = { ...item, cantidad: nuevaCantidad };
-          guardarEnCarrito(id, actualizado);
-          return actualizado;
-        }
-        return item;
-      });
-      return nuevoCarrito;
-    });
+    const nuevoCarrito = guardarEnCarrito(producto);
+    setCarrito(nuevoCarrito);
   };
 
-  // --- 4. EFECTOS (Conectividad) ---
-  useEffect(() => {
-    const checkConnectivity = async () => {
-      if (!navigator.onLine) { setIsOffline(true); return; }
-      try {
-        await fetch('https://www.gstatic.com/generate_204', { mode: 'no-cors', cache: 'no-store' });
-        setIsOffline(false);
-      } catch { setIsOffline(true); }
-    };
+  const handleEliminarDeCarrito = (id) => {
+    const nuevoCarrito = borrarDelCarrito(id);
+    setCarrito(nuevoCarrito);
+  };
 
-    window.addEventListener('online', checkConnectivity);
-    window.addEventListener('offline', () => setIsOffline(true));
-    const intervalId = setInterval(checkConnectivity, 10000);
+  const handleCambiarCantidad = (id, cambio) => {
+    const item = carrito.find(i => i.id === id);
+    if (!item) return;
+    const nuevaCantidad = item.cantidad + cambio;
+    if (nuevaCantidad > MAX_COPIAS) {
+      setMensajeMax(`No se pueden añadir más de ${MAX_COPIAS} copias.`);
+      setTimeout(() => setMensajeMax(''), 3000);
+      return;
+    }
+    if (nuevaCantidad <= 0) {
+      handleEliminarDeCarrito(id);
+      return;
+    }
+    item.cantidad = nuevaCantidad;
+    localStorage.setItem(`carrito_${id}`, JSON.stringify(item));
+    setCarrito(cargarCarrito());
+  };
 
-    return () => {
-      window.removeEventListener('online', checkConnectivity);
-      window.removeEventListener('offline', () => setIsOffline(true));
-      clearInterval(intervalId);
-    };
-  }, []);
+  const handleVaciarCarrito = () => {
+    carrito.forEach(item => borrarDelCarrito(item.id));
+    setCarrito([]);
+  };
 
-  // --- 5. RENDER ---
+  const handleAlternarFavorito = (producto) => {
+    const id = producto._id || producto.id;
+    const esFavorito = favoritos.some(f => f.id === id);
+    if (esFavorito) {
+      borrarDeFavoritos(id);
+    } else {
+      guardarEnFavoritos(producto);
+    }
+    setFavoritos(cargarFavoritos());
+  };
+
   return (
-    <div className="container container-principal shadow-lg">
-      <Cabecera titulo="LA TIENDA DE DAWEWIWOWU" />
-      
-      {/* Un solo menú de navegación con todas las funciones */}
-      <MenuNavegacion 
-        onAbrirCarrito={() => setCarritoAbierto(true)} 
-        onAbrirFavoritos={() => setFavoritosAbiertos(true)} 
-        isOffline={isOffline} 
+    <div className="container-fluid min-vh-100 d-flex flex-column p-0 app-container">
+      <Cabecera 
+        filtroTexto={filtroTexto} 
+        onFiltroTextoChange={setFiltroTexto}
+        filtroTipo={filtroTipo}
+        onFiltroTipoChange={setFiltroTipo}
       />
 
-      <div className="layout-tienda flex-grow-1">
-        <EscaparateProductos
-          busqueda={busqueda}
-          onBusqueda={handleBusqueda}
-          productosEnPagina={productosEnPagina}
-          carrito={carrito}
-          onAgregarCarrito={handleAgregarCarrito}
-          productoDetalle={productoDetalle}
-          setProductoDetalle={setProductoDetalle}
-          paginaActual={paginaActual}
-          totalPaginas={totalPaginas}
-          totalProductos={productosFiltrados.length}
-          productosPorPagina={PRODUCTOS_POR_PAGINA}
-          onCambiarPagina={setPaginaActual}
-          favoritos={favoritos}
-          onAlternarFavorito={handleAlternarFavorito}
-        />
+      <MenuNavegacion 
+        onAbrirCarrito={() => setCarritoAbierto(true)}
+        onAbrirFavoritos={() => setFavoritosAbiertos(true)}
+        isOffline={isOffline}
+        usuarioLogueado={usuario}
+        seccionActual={seccionActual}
+        onCambiarSeccion={setSeccionActual}
+      />
 
-        <aside className="bg-light p-3 border-start">
+      <div className="flex-grow-1 d-flex cuerpo-principal">
+        <main className="flex-grow-1 p-3 contenido-productos">
+          {/* RENDERIZADO CONDICIONAL SEGÚN LA SECCIÓN SELECCIONADA */}
+          {seccionActual === 'inicio' && (
+            <>
+              {cargandoProductos ? (
+                <div className="text-center p-5"><h4>Cargando catálogo...</h4></div>
+              ) : (
+                <EscaparateProductos 
+                  busqueda={filtroTexto}
+                  onBusqueda={(e) => setFiltroTexto(e.target.value)}
+                  productosEnPagina={productosPaginados}
+                  carrito={carrito}
+                  onAgregarCarrito={handleAñadirAlCarrito}
+                  productoDetalle={productoSeleccionado}
+                  setProductoDetalle={setProductoSeleccionado}
+                  paginaActual={paginaActual}
+                  totalPaginas={totalPaginas}
+                  totalProductos={productosFiltrados.length}
+                  productosPorPagina={PRODUCTOS_POR_PAGINA}
+                  onCambiarPagina={setPaginaActual}
+                  favoritos={favoritos}
+                  onAlternarFavorito={handleAlternarFavorito}
+                />
+              )}
+              <Paginacion 
+                paginaActual={paginaActual}
+                totalPaginas={totalPaginas}
+                totalProductos={productosFiltrados.length}
+                productosPorPagina={PRODUCTOS_POR_PAGINA}
+                onCambiarPagina={setPaginaActual}
+                favoritos={favoritos}
+                onAlternarFavorito={handleAlternarFavorito}
+              />
+            </>
+          )}
+
+          {seccionActual === 'mi-cuenta' && (
+            <MiCuenta usuario={usuario} setUsuario={setUsuario} isOffline={isOffline} />
+          )}
+
+          {seccionActual === 'anadir-producto' && (
+            <FormularioNuevosProductos onActualizarProductos={cargarProductosDesdeAPI} isOffline={isOffline} setSeccionActual={setSeccionActual} />
+          )}
+
+          {seccionActual === 'editar-productos' && (
+            <EditarBorrarProductos productos={productos} onActualizarProductos={cargarProductosDesdeAPI} isOffline={isOffline} />
+          )}
+        </main>
+
+        <aside className="bg-light p-3 border-start lateral-autenticacion">
           <PanelAutenticacion 
             usuarioLogueado={usuario}
             visitas={visitas}
@@ -252,6 +246,7 @@ function App() {
       </div>
 
       <Pie contenido="&copy; Proyecto DAWE." />
+      <PWABadge />
 
       {mensajeMax && !carritoAbierto && (
         <div className="alert alert-warning position-fixed bottom-0 end-0 m-3 shadow" style={{ zIndex: 1060 }}>
@@ -274,10 +269,17 @@ function App() {
         <Favoritos
           favoritos={favoritos}
           onCerrar={() => setFavoritosAbiertos(false)}
-          onEliminar={(id) => handleAlternarFavorito({ id })}
+          onEliminar={handleAlternarFavorito}
+          onAñadirAlCarrito={handleAñadirAlCarrito}
         />
       )}
-      <PWABadge />
+
+      {productoSeleccionado && (
+        <DetallesProducto 
+          producto={productoSeleccionado}
+          onCerrar={() => setProductoSeleccionado(null)}
+        />
+      )}
     </div>
   );
 }

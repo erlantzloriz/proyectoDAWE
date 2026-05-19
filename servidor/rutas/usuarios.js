@@ -119,4 +119,39 @@ router.put('/perfil', async (req, res) => {
   }
 });
 
+router.post('/registro', async (req, res) => {
+  try {
+    const { email, nombre } = req.body;
+    const db = getDB();
+
+    // Comprobamos si ya existe para evitar duplicados en BD
+    const existe = await db.collection('usuarios').findOne({ email: email });
+    if (existe) {
+      return res.status(400).json({ error: 'El email ya está registrado en la base de datos' });
+    }
+
+    // Insertamos el nuevo usuario con campos en blanco para la sección "Mi Cuenta"
+    const nuevoUsuario = {
+      email: email,
+      nombre: nombre,
+      rol: 'usuario',
+      telefono: '',
+      direccion: '',
+      ciudad: ''
+    };
+    
+    await db.collection('usuarios').insertOne(nuevoUsuario);
+
+    // Opcional: Iniciar sesión automáticamente al registrarse en la sesión de Express
+    req.session.email = email;
+    req.session.nombre = nombre;
+    req.session.rol = 'usuario';
+    req.session.visitas = 1;
+
+    res.status(201).json({ mensaje: 'Usuario registrado con éxito en Express', usuario: nuevoUsuario });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al registrar el usuario en MongoDB' });
+  }
+});
+
 export default router;
