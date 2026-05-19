@@ -12,13 +12,14 @@ export default function TarjetaProducto({
   const [avisoVisible, setAvisoVisible] = useState(false);
   const atributoExtra = obtenerAtributoExtra(producto);
   const desactivado = cantidadEnCarrito >= 20;
+  const productoId = producto._id || producto.id;
 
   // Comprobar si este producto ya es favorito
-  const esFavorito = favoritos.some(fav => String(fav.id) === String(producto.id));
+  const esFavorito = favoritos.some(fav => String(fav.id) === String(productoId));
 
   const handleAgregar = () => {
     if (desactivado) return;
-    onAgregarCarrito(producto.id);
+    onAgregarCarrito(producto);
     setAvisoVisible(true);
     setTimeout(() => setAvisoVisible(false), 1000);
   };

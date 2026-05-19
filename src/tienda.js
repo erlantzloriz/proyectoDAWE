@@ -23,8 +23,18 @@ export function cargarCarrito() {
         
         if (clave && clave.startsWith('producto_')) {
             const id = clave.replace('producto_', '');
-            // Parseamos cada elemento y lo guardamos en un array
-            const producto = JSON.parse(localStorage.getItem(clave));
+            const valor = localStorage.getItem(clave);
+            if (!valor || valor === 'undefined' || valor === 'null') {
+                localStorage.removeItem(clave);
+                continue;
+            }
+            let producto;
+            try {
+                producto = JSON.parse(valor);
+            } catch {
+                localStorage.removeItem(clave);
+                continue;
+            }
             carritoCargado.push({ id, ...producto });
         }
     }
@@ -46,7 +56,18 @@ export function cargarFavoritos() {
         const clave = localStorage.key(i);
         if (clave && clave.startsWith('favorito_')) {
             const id = clave.replace('favorito_', '');
-            const producto = JSON.parse(localStorage.getItem(clave));
+            const valor = localStorage.getItem(clave);
+            if (!valor || valor === 'undefined' || valor === 'null') {
+                localStorage.removeItem(clave);
+                continue;
+            }
+            let producto;
+            try {
+                producto = JSON.parse(valor);
+            } catch {
+                localStorage.removeItem(clave);
+                continue;
+            }
             favoritosCargados.push({ id, ...producto });
         }
     }

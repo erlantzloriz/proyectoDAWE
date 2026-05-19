@@ -114,7 +114,9 @@ function App() {
 
   // Funciones del carrito y favoritos heredadas
   const handleAñadirAlCarrito = (producto) => {
-    const itemEnCarrito = carrito.find(item => item.id === producto._id || item.id === producto.id);
+    const id = producto._id || producto.id;
+    if (!id) return;
+    const itemEnCarrito = carrito.find(item => String(item.id) === String(id));
     const cantidadActual = itemEnCarrito ? itemEnCarrito.cantidad : 0;
 
     if (cantidadActual >= MAX_COPIAS) {
@@ -123,30 +125,38 @@ function App() {
       return;
     }
 
-    const nuevoCarrito = guardarEnCarrito(producto);
-    setCarrito(nuevoCarrito);
+    const nuevaCantidad = cantidadActual + 1;
+    const itemActualizado = {
+      id,
+      nombre: producto.nombre,
+      precio: producto.precio,
+      imagen: producto.imagen,
+      cantidad: nuevaCantidad
+    };
+    guardarEnCarrito(id, itemActualizado);
+    setCarrito(cargarCarrito());
   };
 
   const handleEliminarDeCarrito = (id) => {
-    const nuevoCarrito = borrarDelCarrito(id);
-    setCarrito(nuevoCarrito);
+    borrarDelCarrito(id);
+    setCarrito(cargarCarrito());
   };
 
   const handleCambiarCantidad = (id, cambio) => {
     const item = carrito.find(i => i.id === id);
     if (!item) return;
-    const nuevaCantidad = item.cantidad + cambio;
+    const nuevaCantidad = cambio;
     if (nuevaCantidad > MAX_COPIAS) {
       setMensajeMax(`No se pueden añadir más de ${MAX_COPIAS} copias.`);
       setTimeout(() => setMensajeMax(''), 3000);
       return;
     }
-    if (nuevaCantidad <= 0) {
+    if (!Number.isFinite(nuevaCantidad) || nuevaCantidad <= 0) {
       handleEliminarDeCarrito(id);
       return;
     }
     item.cantidad = nuevaCantidad;
-    localStorage.setItem(`carrito_${id}`, JSON.stringify(item));
+    localStorage.setItem(`producto_${id}`, JSON.stringify(item));
     setCarrito(cargarCarrito());
   };
 
@@ -155,13 +165,20 @@ function App() {
     setCarrito([]);
   };
 
-  const handleAlternarFavorito = (producto) => {
-    const id = producto._id || producto.id;
-    const esFavorito = favoritos.some(f => f.id === id);
+  const handleAlternarFavorito = (productoOrId) => {
+    const esObjeto = typeof productoOrId === 'object' && productoOrId !== null;
+    const id = esObjeto ? (productoOrId._id || productoOrId.id) : productoOrId;
+    if (!id) return;
+
+    const esFavorito = favoritos.some(f => String(f.id) === String(id));
     if (esFavorito) {
       borrarDeFavoritos(id);
     } else {
-      guardarEnFavoritos(producto);
+      const producto = esObjeto
+        ? productoOrId
+        : productos.find(p => String(p._id || p.id) === String(id));
+      if (!producto) return;
+      guardarEnFavoritos(id, producto);
     }
     setFavoritos(cargarFavoritos());
   };

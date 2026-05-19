@@ -24,17 +24,20 @@ export default function EscaparateProductos({
       <BuscadorProductos busqueda={busqueda} onBusqueda={onBusqueda} />
 
       <div className="row row-cols-1 row-cols-md-3 g-4">
-        {productosEnPagina.map(p => (
+        {productosEnPagina.map(p => {
+          const productoId = p._id || p.id;
+          return (
           <TarjetaProducto
-            key={p.id}
+            key={productoId}
             producto={p}
-            cantidadEnCarrito={carrito.find(item => String(item.id) === String(p.id))?.cantidad || 0}
+            cantidadEnCarrito={carrito.find(item => String(item.id) === String(productoId))?.cantidad || 0}
             onAgregarCarrito={onAgregarCarrito}
             onVerDetalles={setProductoDetalle}
             favoritos={favoritos}        // <--- Pasamos favoritos a la tarjeta
             onAlternarFavorito={onAlternarFavorito} // <--- Pasamos la función
           />
-        ))}
+        );
+        })}
       </div>
 
       <Paginacion
