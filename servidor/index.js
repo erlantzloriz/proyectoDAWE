@@ -1,8 +1,8 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import session from 'express-session';
 import MongoStore from 'connect-mongo';
-import { MongoClient } from 'mongodb';
 
 import { conectarDB } from './db.js';
 
@@ -14,7 +14,7 @@ const app = express();
 const PORT = 5000; // El cliente suele correr en el 5173 (Vite), usamos el 5000 para el backend
 
 // URL de conexión local a MongoDB (Base de datos: "tienda")
-const MONGO_URI = 'mongodb://127.0.0.1:27017/tienda';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/tienda';
 
 // --- MIDDLEWARES GLOBALES ---
 

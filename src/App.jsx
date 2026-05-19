@@ -167,13 +167,8 @@ function App() {
   };
 
   return (
-    <div className="container-fluid min-vh-100 d-flex flex-column p-0 app-container">
-      <Cabecera 
-        filtroTexto={filtroTexto} 
-        onFiltroTextoChange={setFiltroTexto}
-        filtroTipo={filtroTipo}
-        onFiltroTipoChange={setFiltroTipo}
-      />
+    <div className="container-principal">
+      <Cabecera titulo="LA TIENDA DE DAWEWIWOWU" />
 
       <MenuNavegacion 
         onAbrirCarrito={() => setCarritoAbierto(true)}
@@ -184,8 +179,8 @@ function App() {
         onCambiarSeccion={setSeccionActual}
       />
 
-      <div className="flex-grow-1 d-flex cuerpo-principal">
-        <main className="flex-grow-1 p-3 contenido-productos">
+      <div className="layout-tienda">
+        <main>
           {/* RENDERIZADO CONDICIONAL SEGÚN LA SECCIÓN SELECCIONADA */}
           {seccionActual === 'inicio' && (
             <>
@@ -209,15 +204,6 @@ function App() {
                   onAlternarFavorito={handleAlternarFavorito}
                 />
               )}
-              <Paginacion 
-                paginaActual={paginaActual}
-                totalPaginas={totalPaginas}
-                totalProductos={productosFiltrados.length}
-                productosPorPagina={PRODUCTOS_POR_PAGINA}
-                onCambiarPagina={setPaginaActual}
-                favoritos={favoritos}
-                onAlternarFavorito={handleAlternarFavorito}
-              />
             </>
           )}
 
@@ -234,7 +220,7 @@ function App() {
           )}
         </main>
 
-        <aside className="bg-light p-3 border-start lateral-autenticacion">
+        <aside>
           <PanelAutenticacion 
             usuarioLogueado={usuario}
             visitas={visitas}
