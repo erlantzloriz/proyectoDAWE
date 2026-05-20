@@ -18,9 +18,16 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const db = getDB();
-    const nuevoProducto = req.body; 
+    const nuevoProducto = { ...req.body };
     // El body contendrá: tipo, nombre, precio, descripcion, extra, imagen
-    
+    if (nuevoProducto.precio !== undefined) {
+      const precioNumerico = Number(nuevoProducto.precio);
+      if (!Number.isFinite(precioNumerico)) {
+        return res.status(400).json({ error: 'El precio debe ser un numero' });
+      }
+      nuevoProducto.precio = precioNumerico;
+    }
+
     const resultado = await db.collection('productos').insertOne(nuevoProducto);
     res.status(201).json({ mensaje: 'Producto añadido con éxito', id: resultado.insertedId });
   } catch (error) {
@@ -54,7 +61,15 @@ router.put('/:nombre', async (req, res) => {
   try {
     const db = getDB();
     const { nombre } = req.params;
-    const camposActualizados = req.body; // Campos modificados en el formulario
+    const camposActualizados = { ...req.body }; // Campos modificados en el formulario
+
+    if (camposActualizados.precio !== undefined) {
+      const precioNumerico = Number(camposActualizados.precio);
+      if (!Number.isFinite(precioNumerico)) {
+        return res.status(400).json({ error: 'El precio debe ser un numero' });
+      }
+      camposActualizados.precio = precioNumerico;
+    }
 
     const resultado = await db.collection('productos').updateOne(
       { nombre: nombre },

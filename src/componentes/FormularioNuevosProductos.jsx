@@ -9,6 +9,14 @@ const ETIQUETAS_EXTRA = {
   JuegoMesa: 'Jugadores',
 };
 
+const CAMPOS_EXTRA = {
+  Videojuego: 'compania',
+  Libro: 'editorial',
+  Musica: 'artista',
+  Pelicula: 'director',
+  JuegoMesa: 'jugadores'
+};
+
 export default function FormularioNuevosProductos({ onRegistrar, isOffline }) {
   const [tipo, setTipo] = useState('');
   const [nombre, setNombre] = useState('');
@@ -18,16 +26,29 @@ export default function FormularioNuevosProductos({ onRegistrar, isOffline }) {
   const [archivo, setArchivo] = useState(null);
   const [mensajeExito, setMensajeExito] = useState(false);
 
-  const handleSubmit = (e) => {
+  const leerArchivoComoDataUrl = (archivoParaLeer) => new Promise((resolve, reject) => {
+    const lector = new FileReader();
+    lector.onload = () => resolve(lector.result);
+    lector.onerror = () => reject(new Error('No se pudo leer la imagen'));
+    lector.readAsDataURL(archivoParaLeer);
+  });
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    const precioNumerico = Number(precio);
+    const imagen = archivo ? await leerArchivoComoDataUrl(archivo) : null;
     const datos = {
       tipo,
       nombre,
-      precio,
+      precio: Number.isFinite(precioNumerico) ? precioNumerico : precio,
       descripcion,
-      extra,
-      imagen: archivo ? URL.createObjectURL(archivo) : null,
+      imagen,
     };
+
+    const campoExtra = CAMPOS_EXTRA[tipo];
+    if (campoExtra) {
+      datos[campoExtra] = extra;
+    }
     onRegistrar(datos);
     setTipo('');
     setNombre('');

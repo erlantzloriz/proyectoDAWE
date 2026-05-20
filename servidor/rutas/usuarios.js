@@ -21,10 +21,8 @@ router.post('/login', async (req, res) => {
     req.session.nombre = usuario.nombre;
     req.session.rol = usuario.rol || null; // 'administrador' o sin rol
     
-    // Si no existía el contador en la sesión, el middleware global de index.js lo inicializará a 1
-    if (!req.session.visitas) {
-      req.session.visitas = 1;
-    }
+    // Iniciamos el contador de visitas al hacer login
+    req.session.visitas = 1;
 
     res.json({
       mensaje: 'Sesión iniciada en el servidor Express',
@@ -34,7 +32,7 @@ router.post('/login', async (req, res) => {
         rol: usuario.rol,
         telefono: usuario.telefono || '',
         direccion: usuario.direccion || '',
-        ciudad: usuario.ciudad || ''
+        edad: Number.isFinite(usuario.edad) ? usuario.edad : null
       },
       visitas: req.session.visitas // Devolvemos el contador activo
     });
@@ -53,6 +51,12 @@ router.get('/perfil', async (req, res) => {
     const db = getDB();
     const usuario = await db.collection('usuarios').findOne({ email: req.session.email });
 
+    if (!req.session.visitas) {
+      req.session.visitas = 1;
+    } else {
+      req.session.visitas += 1;
+    }
+
     res.json({
       autenticado: true,
       usuario: {
@@ -61,9 +65,9 @@ router.get('/perfil', async (req, res) => {
         rol: usuario.rol,
         telefono: usuario.telefono || '',
         direccion: usuario.direccion || '',
-        ciudad: usuario.ciudad || ''
+        edad: Number.isFinite(usuario.edad) ? usuario.edad : null
       },
-      visitas: req.session.visitas // Se incrementa con los refrescos de página vía index.js
+      visitas: req.session.visitas // Se incrementa al consultar el perfil
     });
   } catch (error) {
     res.status(500).json({ error: 'Error al recuperar el perfil' });
@@ -87,7 +91,8 @@ router.put('/perfil', async (req, res) => {
     return res.status(401).json({ error: 'Acción no autorizada. Debe iniciar sesión.' });
   }
 
-  const { nombre, telefono, direccion, ciudad } = req.body;
+  const { nombre, telefono, direccion, edad } = req.body;
+  const edadNumerica = edad === '' || edad === null || edad === undefined ? null : Number(edad);
 
   // Validación: El campo nombre NO se puede dejar vacío
   if (!nombre || nombre.trim() === '') {
@@ -105,7 +110,7 @@ router.put('/perfil', async (req, res) => {
           nombre: nombre,
           telefono: telefono,
           direccion: direccion,
-          ciudad: ciudad
+          edad: Number.isFinite(edadNumerica) ? edadNumerica : null
         } 
       }
     );
@@ -116,41 +121,6 @@ router.put('/perfil', async (req, res) => {
     res.json({ mensaje: 'Datos de usuario actualizados con éxito en MongoDB' });
   } catch (error) {
     res.status(500).json({ error: 'Error al actualizar los datos del usuario' });
-  }
-});
-
-router.post('/registro', async (req, res) => {
-  try {
-    const { email, nombre } = req.body;
-    const db = getDB();
-
-    // Comprobamos si ya existe para evitar duplicados en BD
-    const existe = await db.collection('usuarios').findOne({ email: email });
-    if (existe) {
-      return res.status(400).json({ error: 'El email ya está registrado en la base de datos' });
-    }
-
-    // Insertamos el nuevo usuario con campos en blanco para la sección "Mi Cuenta"
-    const nuevoUsuario = {
-      email: email,
-      nombre: nombre,
-      rol: 'usuario',
-      telefono: '',
-      direccion: '',
-      ciudad: ''
-    };
-    
-    await db.collection('usuarios').insertOne(nuevoUsuario);
-
-    // Opcional: Iniciar sesión automáticamente al registrarse en la sesión de Express
-    req.session.email = email;
-    req.session.nombre = nombre;
-    req.session.rol = 'usuario';
-    req.session.visitas = 1;
-
-    res.status(201).json({ mensaje: 'Usuario registrado con éxito en Express', usuario: nuevoUsuario });
-  } catch (error) {
-    res.status(500).json({ error: 'Error al registrar el usuario en MongoDB' });
   }
 });
 

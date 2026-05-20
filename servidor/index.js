@@ -38,8 +38,8 @@ app.use(cors({
 }));
 
 // 2. Parsers para leer JSON y formularios estructurados en los bodies de las peticiones
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // 3. Middleware de Gestión de Sesiones almacenadas en MongoDB
 app.use(session({
@@ -57,19 +57,6 @@ app.use(session({
     maxAge: 1000 * 60 * 60 * 24 // Duración de 1 día activo
   }
 }));
-
-// 4. Middleware personalizado para gestionar el Contador de Visitas de la sesión
-app.use((req, res, next) => {
-  // Solo contamos visitas si el usuario ha iniciado sesión (lo sabremos porque guardaremos su email)
-  if (req.session && req.session.email) {
-    if (!req.session.visitas) {
-      req.session.visitas = 1; // Inicializado a 1 al empezar la sesión
-    } else {
-      req.session.visitas += 1; // Incrementa en 1 cada vez que refresca la página estando autenticado
-    }
-  }
-  next();
-});
 
 // --- ENRUTADORES MODULARES ---
 // delegamos la lógica de negocio a los ficheros correspondientes sin saturar index.js

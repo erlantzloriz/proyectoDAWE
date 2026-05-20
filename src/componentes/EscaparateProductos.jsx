@@ -1,6 +1,4 @@
 import TarjetaProducto from './TarjetaProducto.jsx';
-import Paginacion from './Paginacion.jsx';
-import BuscadorProductos from './BuscadorProductos.jsx';
 import DetallesProducto from './DetallesProducto.jsx';
 
 export default function EscaparateProductos({
@@ -21,7 +19,19 @@ export default function EscaparateProductos({
 }) {
   return (
     <main className="p-4">
-      <BuscadorProductos busqueda={busqueda} onBusqueda={onBusqueda} />
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2 className="mb-0">
+          {busqueda ? `Buscando por: ${busqueda}` : 'Todos los productos'}
+        </h2>
+        <input
+          type="text"
+          className="form-control"
+          placeholder="Buscar productos por nombre..."
+          style={{ maxWidth: '300px' }}
+          value={busqueda}
+          onChange={onBusqueda}
+        />
+      </div>
 
       <div className="row row-cols-1 row-cols-md-3 g-4">
         {productosEnPagina.map(p => {
@@ -40,13 +50,46 @@ export default function EscaparateProductos({
         })}
       </div>
 
-      <Paginacion
-        paginaActual={paginaActual}
-        totalPaginas={totalPaginas}
-        totalProductos={totalProductos}
-        productosPorPagina={productosPorPagina}
-        onCambiarPagina={onCambiarPagina}
-      />
+      {totalProductos > 0 && (() => {
+        const inicio = (paginaActual - 1) * productosPorPagina;
+        const fin = Math.min(inicio + productosPorPagina, totalProductos);
+        const mostrados = fin - inicio;
+
+        return (
+          <div className="mt-5 py-4 border-top">
+            <div className="text-center text-muted mb-3 small">
+              Mostrando {mostrados} de {totalProductos} productos.
+            </div>
+            <div className="d-flex justify-content-center align-items-center" id="paginacion-btns">
+              {paginaActual > 1 && (
+                <button
+                  className="btn btn-sm btn-outline-dark m-1"
+                  onClick={() => onCambiarPagina(paginaActual - 1)}
+                >
+                  Anterior
+                </button>
+              )}
+              {Array.from({ length: totalPaginas }, (_, i) => i + 1).map(i => (
+                <button
+                  key={i}
+                  className={`btn btn-sm m-1 ${i === paginaActual ? 'btn-dark' : 'btn-outline-dark'}`}
+                  onClick={() => onCambiarPagina(i)}
+                >
+                  {i}
+                </button>
+              ))}
+              {totalPaginas > 1 && paginaActual < totalPaginas && (
+                <button
+                  className="btn btn-sm btn-outline-dark m-1"
+                  onClick={() => onCambiarPagina(paginaActual + 1)}
+                >
+                  Siguiente
+                </button>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {productoDetalle && (
         <DetallesProducto

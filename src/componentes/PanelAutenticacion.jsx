@@ -1,10 +1,8 @@
 import { useState } from 'react';
 // Asegúrate de que la ruta de importación coincida con donde tienes exportadas estas funciones de Firebase
-import { auth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from '../firebase.js'; 
+import { auth, signInWithEmailAndPassword, signOut } from '../firebase.js'; 
 
 export default function PanelAutenticacion({ usuarioLogueado, visitas, onLoginExitoso, onLogoutExitoso, isOffline }) {
-  const [esRegistro, setEsRegistro] = useState(false);
-  const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [contrasena, setContrasena] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -19,35 +17,40 @@ export default function PanelAutenticacion({ usuarioLogueado, visitas, onLoginEx
     setCargando(true);
 
     try {
-      if (esRegistro) {
-        // 1. Crear en Firebase
-        const userCredential = await createUserWithEmailAndPassword(auth, email, contrasena);
-        // 2. Guardar en MongoDB
-        const respuesta = await fetch(`${API_URL}/api/usuarios/registro`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: userCredential.user.email, nombre })
-        });
-        
-        if (!respuesta.ok) throw new Error('Error al guardar en la base de datos');
-        const data = await respuesta.json();
-        if (onLoginExitoso) onLoginExitoso(data.usuario);
-        
-      } else {
-        // Lógica original de Login
-        const userCredential = await signInWithEmailAndPassword(auth, email, contrasena);
-        const respuesta = await fetch(`${API_URL}/api/usuarios/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: userCredential.user.email })
-        });
-        
-        if (!respuesta.ok) throw new Error('Error en las credenciales o en el servidor');
-        const data = await respuesta.json();
-        if (onLoginExitoso) onLoginExitoso(data.usuario);
-      }
+      // Login con Firebase
+      const userCredential = await signInWithEmailAndPassword(auth, email, contrasena);
+      const respuesta = await fetch(`${API_URL}/api/usuarios/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: userCredential.user.email })
+      });
+      
+      if (!respuesta.ok) throw new Error('Error en las credenciales o en el servidor');
+      const data = await respuesta.json();
+      if (onLoginExitoso) onLoginExitoso(data.usuario, data.visitas || 1);
     } catch (error) {
       setErrorMsg(error.message || 'Error en la autenticación');
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    if (isOffline) return;
+
+    setErrorMsg('');
+    setCargando(true);
+
+    try {
+      await fetch(`${API_URL}/api/usuarios/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      await signOut(auth);
+      if (onLogoutExitoso) onLogoutExitoso();
+    } catch (error) {
+      setErrorMsg(error.message || 'Error al cerrar la sesión');
     } finally {
       setCargando(false);
     }
@@ -57,32 +60,35 @@ export default function PanelAutenticacion({ usuarioLogueado, visitas, onLoginEx
   if (usuarioLogueado) {
     return (
       <div className="p-3">
-        <h5>Bienvenido, {usuarioLogueado.nombre}</h5>
-        <p className="small text-muted">Visitas: {visitas}</p>
-        {/* Aquí iría tu botón de Logout llamando a onLogoutExitoso */}
+        <h5 className="mb-3">Panel de usuario</h5>
+        <div className="border rounded p-2 mb-3 bg-light">
+          <div className="fw-bold">Hola, {usuarioLogueado.nombre}</div>
+          <div className="small">Rol: {usuarioLogueado.rol || 'sin rol'}</div>
+          <div className="small">Visitas: {visitas}</div>
+        </div>
+
+        {errorMsg && (
+          <div className="alert alert-danger p-2 small mb-2">
+            {errorMsg}
+          </div>
+        )}
+
+        <button
+          type="button"
+          className="btn btn-outline-dark w-100"
+          onClick={handleLogout}
+          disabled={isOffline || cargando}
+        >
+          {cargando ? 'Cerrando sesion...' : 'Cerrar sesion'}
+        </button>
       </div>
     );
   }
 
-  // Formulario dinámico (Login / Registro)
+  // Formulario de login
   return (
     <form onSubmit={handleSubmit} className="p-2">
-      <h5 className="mb-3">{esRegistro ? 'Crear Cuenta' : 'Iniciar Sesión'}</h5>
-      
-      {esRegistro && (
-        <div className="mb-3">
-          <label className="form-label small fw-bold">Nombre</label>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Tu nombre"
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-            required={esRegistro}
-            disabled={isOffline || cargando}
-          />
-        </div>
-      )}
+      <h5 className="mb-3">Iniciar Sesion</h5>
 
       <div className="mb-3">
         <label className="form-label small fw-bold">Email</label> 
@@ -121,16 +127,7 @@ export default function PanelAutenticacion({ usuarioLogueado, visitas, onLoginEx
         className="btn btn-primary w-100 py-2 fw-bold text-white mb-2"
         disabled={isOffline || cargando}
       >
-        {cargando ? 'Cargando...' : (esRegistro ? 'Registrarse' : 'Entrar')}
-      </button>
-
-      <button 
-        type="button" 
-        className="btn btn-link w-100 p-0 text-decoration-none small"
-        onClick={() => setEsRegistro(!esRegistro)}
-        disabled={isOffline || cargando}
-      >
-        {esRegistro ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
+        {cargando ? 'Cargando...' : 'Entrar'}
       </button>
     </form>
   );

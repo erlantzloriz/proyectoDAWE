@@ -12,10 +12,7 @@ import {
   cargarFavoritos 
 } from './tienda.js';
 
-import TarjetaProducto from './componentes/TarjetaProducto.jsx';
-import Paginacion from './componentes/Paginacion.jsx';
 import Carrito from './componentes/Carrito.jsx';
-import DetallesProducto from './componentes/DetallesProducto.jsx';
 import PWABadge from './PWABadge.jsx';
 import './assets/style.css';
 import './App.css';
@@ -25,11 +22,9 @@ import EscaparateProductos from './componentes/EscaparateProductos.jsx';
 import Pie from './componentes/Pie.jsx';
 import Favoritos from './componentes/Favoritos.jsx';
 import PanelAutenticacion from './componentes/PanelAutenticacion.jsx';
-
-// Marcadores de posición para las vistas que crearemos en los siguientes bloques
-const MiCuenta = () => <div className="p-4"><h3>Sección Mi Cuenta (Bloque 2)</h3></div>;
-const EditarBorrarProductos = () => <div className="p-4"><h3>Sección Administración Productos (Bloque 3)</h3></div>;
-const FormularioNuevosProductos = () => <div className="p-4"><h3>Sección Añadir Productos (Bloque 3)</h3></div>;
+import MiCuenta from './componentes/MiCuenta.jsx';
+import EditarBorrarProductos from './componentes/EditarBorrarProductos.jsx';
+import FormularioNuevosProductos from './componentes/FormularioNuevosProductos.jsx';
 
 const PRODUCTOS_POR_PAGINA = 6;
 const PRODUCTOS_CACHE_KEY = 'productos_cache';
@@ -65,6 +60,26 @@ function App() {
       setIsOffline(false);
     } catch {
       setIsOffline(true);
+    }
+  };
+
+  const cargarSesionActiva = async () => {
+    if (isOffline || !navigator.onLine) return;
+
+    try {
+      const respuesta = await fetch(`${API_URL}/api/usuarios/perfil`, {
+        credentials: 'include',
+        headers: { 'x-skip-sw': '1' }
+      });
+
+      if (!respuesta.ok) return;
+      const data = await respuesta.json();
+      if (data.autenticado) {
+        setUsuario(data.usuario);
+        setVisitas(data.visitas || 1);
+      }
+    } catch {
+      // Silencioso: si falla la sesion, se mantiene el estado actual
     }
   };
 
@@ -104,6 +119,7 @@ function App() {
     setIsOffline(!navigator.onLine);
     comprobarConexionAPI();
     cargarProductosDesdeAPI();
+    cargarSesionActiva();
 
     setCarrito(cargarCarrito());
     setFavoritos(cargarFavoritos());
@@ -111,6 +127,7 @@ function App() {
     const handleOnline = () => {
       comprobarConexionAPI();
       cargarProductosDesdeAPI();
+      cargarSesionActiva();
     };
     const handleOffline = () => setIsOffline(true);
 
@@ -124,7 +141,7 @@ function App() {
   }, []);
 
   // Handlers para el Login y Logout
-  const handleLoginExitoso = (datosUsuario, numVisitas) => {
+  const handleLoginExitoso = (datosUsuario, numVisitas = 1) => {
     setUsuario(datosUsuario);
     setVisitas(numVisitas);
   };
@@ -218,6 +235,27 @@ function App() {
     setFavoritos(cargarFavoritos());
   };
 
+  const handleRegistrarProducto = async (nuevoProducto) => {
+    if (isOffline) return;
+
+    try {
+      const respuesta = await fetch(`${API_URL}/api/productos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(nuevoProducto)
+      });
+
+      if (!respuesta.ok) {
+        throw new Error('No se pudo registrar el producto');
+      }
+
+      await cargarProductosDesdeAPI();
+      setSeccionActual('inicio');
+    } catch (error) {
+      console.error('Error al registrar el producto:', error);
+    }
+  };
+
   return (
     <div className="container-principal">
       <Cabecera titulo="LA TIENDA DE DAWEWIWOWU" />
@@ -264,7 +302,7 @@ function App() {
           )}
 
           {seccionActual === 'anadir-producto' && (
-            <FormularioNuevosProductos onActualizarProductos={cargarProductosDesdeAPI} isOffline={isOffline} setSeccionActual={setSeccionActual} />
+            <FormularioNuevosProductos onRegistrar={handleRegistrarProducto} isOffline={isOffline} />
           )}
 
           {seccionActual === 'editar-productos' && (
@@ -312,12 +350,6 @@ function App() {
         />
       )}
 
-      {productoSeleccionado && (
-        <DetallesProducto 
-          producto={productoSeleccionado}
-          onCerrar={() => setProductoSeleccionado(null)}
-        />
-      )}
     </div>
   );
 }
