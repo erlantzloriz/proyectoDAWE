@@ -10,9 +10,11 @@
     "build": "vite build",
     "start": "serve -s dist",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "concurrently -n preview,server -c blue,green \"vite preview\" \"npm run dev:server\""
   },
   "dependencies": {
+    "@fontsource/roboto": "^5.0.22",
+    "bootstrap": "^5.3.3",
     "firebase": "^12.13.0",
     "firebase-admin": "^13.10.0",
     "react": "^19.2.0",

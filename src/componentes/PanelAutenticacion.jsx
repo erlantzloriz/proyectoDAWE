@@ -9,6 +9,7 @@ export default function PanelAutenticacion({ usuarioLogueado, visitas, onLoginEx
   const [contrasena, setContrasena] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [cargando, setCargando] = useState(false);
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,7 +23,7 @@ export default function PanelAutenticacion({ usuarioLogueado, visitas, onLoginEx
         // 1. Crear en Firebase
         const userCredential = await createUserWithEmailAndPassword(auth, email, contrasena);
         // 2. Guardar en MongoDB
-        const respuesta = await fetch('http://localhost:5000/api/usuarios/registro', {
+        const respuesta = await fetch(`${API_URL}/api/usuarios/registro`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: userCredential.user.email, nombre })
@@ -35,7 +36,7 @@ export default function PanelAutenticacion({ usuarioLogueado, visitas, onLoginEx
       } else {
         // Lógica original de Login
         const userCredential = await signInWithEmailAndPassword(auth, email, contrasena);
-        const respuesta = await fetch('http://localhost:5000/api/usuarios/login', {
+        const respuesta = await fetch(`${API_URL}/api/usuarios/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: userCredential.user.email })

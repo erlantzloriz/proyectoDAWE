@@ -32,12 +32,14 @@ const EditarBorrarProductos = () => <div className="p-4"><h3>Sección Administra
 const FormularioNuevosProductos = () => <div className="p-4"><h3>Sección Añadir Productos (Bloque 3)</h3></div>;
 
 const PRODUCTOS_POR_PAGINA = 6;
+const PRODUCTOS_CACHE_KEY = 'productos_cache';
 
 function App() {
   const [usuario, setUsuario] = useState(null); 
   const [visitas, setVisitas] = useState(0);
   const [productos, setProductos] = useState([]); // Ahora empieza vacío y se llena desde MongoDB
   const [cargandoProductos, setCargandoProductos] = useState(true);
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   // Estado para la navegación interna
   const [seccionActual, setSeccionActual] = useState('inicio'); 
@@ -54,29 +56,62 @@ function App() {
   const [mensajeMax, setMensajeMax] = useState('');
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
+  const comprobarConexionAPI = async () => {
+    try {
+      await fetch(`${API_URL}/api/productos`, {
+        cache: 'no-store',
+        headers: { 'x-skip-sw': '1' }
+      });
+      setIsOffline(false);
+    } catch {
+      setIsOffline(true);
+    }
+  };
+
   // 1. Efecto para cargar los productos desde la API de MongoDB
   const cargarProductosDesdeAPI = async () => {
     try {
       setCargandoProductos(true);
-      const respuesta = await fetch('http://localhost:5000/api/productos');
+      const cacheLocal = localStorage.getItem(PRODUCTOS_CACHE_KEY);
+      if (cacheLocal) {
+        try {
+          setProductos(JSON.parse(cacheLocal));
+        } catch {
+          localStorage.removeItem(PRODUCTOS_CACHE_KEY);
+        }
+      }
+
+      if (isOffline || !navigator.onLine) {
+        setIsOffline(true);
+        return;
+      }
+
+      const respuesta = await fetch(`${API_URL}/api/productos`);
       if (respuesta.ok) {
         const datos = await respuesta.json();
         setProductos(datos);
+        localStorage.setItem(PRODUCTOS_CACHE_KEY, JSON.stringify(datos));
       }
     } catch (error) {
       console.error("Error al conectar con la API de productos:", error);
+      setIsOffline(true);
     } finally {
       setCargandoProductos(false);
     }
   };
 
   useEffect(() => {
+    setIsOffline(!navigator.onLine);
+    comprobarConexionAPI();
     cargarProductosDesdeAPI();
 
     setCarrito(cargarCarrito());
     setFavoritos(cargarFavoritos());
 
-    const handleOnline = () => setIsOffline(false);
+    const handleOnline = () => {
+      comprobarConexionAPI();
+      cargarProductosDesdeAPI();
+    };
     const handleOffline = () => setIsOffline(true);
 
     window.addEventListener('online', handleOnline);
